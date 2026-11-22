@@ -1,0 +1,3 @@
+# Pair every notebook with a percent-format text file (clean diffs in git).
+# Editing the .ipynb in JupyterLab also updates the .py, and vice versa.
+formats = "ipynb,py:percent"

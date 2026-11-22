@@ -1,0 +1,222 @@
+# Setup Guide: Running, Building, and Publishing the Book
+
+This guide explains how to set up your computer so that you can
+
+1. **run** the notebooks of the book and change them;
+2. **build** the whole book as a website, with every output and figure already computed;
+3. **publish** that website on GitHub Pages, **without any computation on GitHub**.
+
+You only need steps 1 and 2 to study the book. Step 3 is for those who want to publish their own copy (for example, the author, or a student who forks the repository).
+
+## The big picture
+
+The book follows one rule: **all computation happens on your computer, never on a server.**
+
+```text
+ chapters/chXX_name.py          you write/edit the notebook as a plain text file (percent format)
+          │
+          │   python tools/book.py execute      (jupytext runs every cell, on your computer)
+          ▼
+ chapters/chXX_name.ipynb       the same notebook, now with all outputs and figures stored inside
+          │
+          │   python tools/book.py build        (Jupyter Book turns notebooks into HTML; it does NOT run code)
+          ▼
+ _build/html/                   a folder of static web pages
+          │
+          │   python tools/book.py publish      (pushes the folder to the gh-pages branch)
+          ▼
+ GitHub Pages                   serves the files as they are: nothing is computed there
+```
+
+Three facts make this work:
+
+- A Jupyter notebook (`.ipynb`) is a file that can store its outputs. After `execute`, the numbers, tables, and figures you see in the book are *inside the file*.
+- Jupyter Book 2 does **not** execute notebooks when it builds the site, unless you pass the `--execute` flag. It simply displays the stored outputs. The build script never passes that flag.
+- GitHub Pages can serve a branch of static files (`gh-pages`). We push the finished HTML there ourselves, so no workflow has to install Python or run notebooks on GitHub's machines.
+
+## What you need
+
+- **Python 3.11 or newer** (the outputs in this book were produced with Python 3.13; the exact versions are printed at the top of Chapter 1).
+- **Git** and a terminal.
+- **An internet connection** for the first installation of the packages. Jupyter Book also downloads its web theme the first time you build or preview the site; afterwards it is cached.
+- **Node.js.** Jupyter Book 2 is built on a JavaScript engine. If Node.js is not installed, the first run of Jupyter Book offers to install it for you inside your environment: answer `y`. With the conda environment below, Node.js is installed together with everything else.
+
+## 1. Get the code
+
+```bash
+git clone https://github.com/Brosss98/machine-learning-with-python-book.git
+cd machine-learning-with-python-book
+```
+
+The repository has this structure:
+
+```text
+machine-learning-with-python-book/
+├── README.md, LICENSE, LICENSE-TEXT.md, CITATION.cff, VERSION
+├── myst.yml                 configuration of the book and its table of contents
+├── requirements.txt         Python packages (pip)
+├── environment.yml          the same, as a conda environment
+├── jupytext.toml            pairs every .ipynb with a .py (percent) text file
+├── tools/book.py            execute / build / publish commands
+├── front_matter/            cover, copyright, preface, how to use, notation
+├── chapters/                one notebook per chapter: chNN_name.py and chNN_name.ipynb
+└── appendices/              solutions, glossary, ...
+```
+
+Both the `.py` file and the executed `.ipynb` of each notebook are committed to git. The folder `_build/` is not: the HTML exists only on the `gh-pages` branch.
+
+## 2. Create the environment
+
+An *environment* is an isolated copy of Python with its own packages, so that the book does not interfere with your other projects. Choose **one** of the two options.
+
+**Option A: a virtual environment (pip).**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows (PowerShell): .venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+**Option B: a conda environment.**
+
+```bash
+conda env create -f environment.yml
+conda activate ml-book
+```
+
+Whenever you work on the book, activate the environment first.
+
+Then register the environment as a **Jupyter kernel**. A kernel is the program that actually runs the code of a notebook, and Jupyter must know which Python (that is, which environment) to use. You do this once:
+
+```bash
+python tools/book.py setup-kernel
+```
+
+It runs `python -m ipykernel install --user --name machine-learning-with-python-book --display-name "Python (ML book)"`. Without this step, `execute` may stop with the error *"No kernel found that matches the current python executable"*.
+
+## 3. Open and run a notebook
+
+```bash
+jupyter lab
+```
+
+In JupyterLab, open `chapters/ch01_what_is_machine_learning.ipynb` and run the cells with *Shift + Enter*, or choose *Run → Run All Cells*. The package `jupyterlab-myst` makes the special boxes of the book ("Key idea", "Pitfall", "Try it") appear correctly in JupyterLab.
+
+Thanks to `jupytext.toml`, the `.py` file is kept in sync with the `.ipynb`. You can also open the `.py` files directly in editors that understand the percent format, such as Visual Studio Code: each `# %%` line starts a cell.
+
+The first cell of Chapter 1 prints the versions of Python and of the libraries. If yours are different from those printed in the published book, small numerical differences in the results are normal.
+
+## 4. Execute all the notebooks
+
+```bash
+python tools/book.py execute
+```
+
+For every notebook of `chapters/` and `appendices/`, this command runs `jupytext --set-kernel - --to ipynb --execute`, which runs all the cells in order and saves the executed notebook as `.ipynb`. Notebooks that are already up to date (the `.ipynb` is newer than the `.py`) are skipped. Useful variations:
+
+```bash
+python tools/book.py execute --force                           # run everything again
+python tools/book.py execute chapters/ch01_what_is_machine_learning.py   # run one notebook
+python tools/book.py execute --dry-run                         # only show what would be done
+```
+
+If a cell raises an error, the command stops and shows it: nothing broken can end up in the published book.
+
+## 5. Build the website locally
+
+```bash
+python tools/book.py build --local --strict
+python tools/book.py serve
+```
+
+The first command builds the static HTML into `_build/html`. The option `--strict` makes the build fail on problems such as broken links. The second command starts a small web server: open <http://localhost:8000> in your browser to see the book exactly as it will be published.
+
+While you are *writing*, a live preview that refreshes automatically is more convenient:
+
+```bash
+python tools/book.py preview
+```
+
+It shows the site at <http://localhost:3000>.
+
+:::{note}
+Why the `--local` option? A project site on GitHub Pages lives under a sub-path (here `/machine-learning-with-python-book/`), and every link in the HTML must start with that prefix. Jupyter Book reads the prefix from the environment variable `BASE_URL`. A local test does not need it, a published build does: `build --local` leaves it empty, `build` sets it. The script remembers which of the two you did, and **refuses to publish a local build**.
+:::
+
+## 6. Publish on GitHub Pages (with no computation on GitHub)
+
+### One-time setup
+
+1. On GitHub, create a **public**, empty repository named `machine-learning-with-python-book` under your account (without README or license, since they already exist locally).
+2. Connect your local copy and upload the sources:
+
+   ```bash
+   git remote add origin https://github.com/Brosss98/machine-learning-with-python-book.git
+   git push -u origin main
+   ```
+
+   (If you work on a fork or with another repository name, set the environment variable `BOOK_BASE_URL=/your-repository-name` before building. For a repository called `username.github.io` the base URL is empty.)
+3. Build and publish the first time:
+
+   ```bash
+   python tools/book.py build --strict
+   python tools/book.py publish
+   ```
+
+   The `publish` command runs `ghp-import -n -p -f _build/html`: it copies the contents of `_build/html` to the branch `gh-pages` (adding an empty `.nojekyll` file, which tells GitHub not to run any site generator) and pushes it.
+4. On GitHub, open **Settings → Pages**. Under *Build and deployment*, choose **Source: Deploy from a branch**, then **Branch: `gh-pages`**, folder **`/ (root)`**, and save.
+5. After a minute or two the book is online at <https://brosss98.github.io/machine-learning-with-python-book/>.
+
+:::{admonition} What "no computation on GitHub" means
+:class: important
+No GitHub Actions workflow of this project installs Python, executes notebooks, or builds the site: you do all of that locally. When you push to `gh-pages`, GitHub runs its own built-in step that simply copies the files to its web servers. Because of `.nojekyll`, nothing is generated or executed. The pages online are therefore byte for byte the ones you checked on your computer.
+
+Do not use `jupyter book init --gh-pages`: it creates a workflow that builds the site on GitHub's machines, which is the opposite of what we want here.
+:::
+
+### Releasing a new chapter
+
+Every new chapter is a small release. A typical session looks like this:
+
+```bash
+# 1. write or edit chapters/chNN_name.py, and add the notebook to the toc in myst.yml
+python tools/book.py execute                     # run the new/changed notebooks
+python tools/book.py build --local --strict      # build and check locally
+python tools/book.py serve                       # look at it in the browser, then Ctrl+C
+
+# 2. new version number (this updates the cover, the copyright page, and CITATION.cff)
+python tools/book.py set-version 0.2.0
+
+# 3. save the sources and tag the release
+git add -A
+git commit -m "Add Chapter 2; release v0.2.0"
+git tag v0.2.0
+git push origin main --tags
+
+# 4. build for GitHub Pages and publish
+python tools/book.py build --strict
+python tools/book.py publish
+```
+
+Versions follow the pattern `MAJOR.MINOR.PATCH`: in this book each published chapter raises the minor number (`0.1.0` → `0.2.0` → …), corrections raise the patch number (`0.2.1`), and `1.0.0` is the complete book. When you release `1.0.0`, also remove the words "work in progress" from `front_matter/index.md`, `front_matter/copyright.md`, and `README.md`.
+
+## Troubleshooting
+
+| Symptom | Likely cause and remedy |
+|---|---|
+| `jupytext` or `jupyter-book` is "not found" | The environment is not active, or the packages are not installed. Activate it and run `pip install -r requirements.txt`. |
+| Jupyter Book asks to install Node.js | Answer `y`, or install Node.js yourself, or use the conda environment. |
+| The published site has no styles or images | The base URL does not match the repository name. Check the name, set `BOOK_BASE_URL=/your-repository-name`, and build and publish again. |
+| The page shows a 404 error | GitHub Pages is not set to the `gh-pages` branch (step 4), or you must wait a few minutes after the first publication. |
+| The book shows old outputs | The notebook was not executed again: run `python tools/book.py execute` (the build prints a warning for notebooks that are out of date). |
+| A cell fails during `execute` | Read the error shown by `jupytext`; fix the cell and run `execute` again. The `.ipynb` of a failing notebook is not updated. |
+| `ValueError: No kernel found that matches the current python executable` during `execute` | The environment is not registered as a Jupyter kernel. Run `python tools/book.py setup-kernel` once (with the environment active) and run `execute` again. |
+| On the website, an empty box appears above the chapter title and the title is shown twice | The `.ipynb` starts with a stray cell, so Jupyter Book cannot use the first heading as the page title. Run `python tools/book.py execute --force`: it removes such cells and prints the first cell of each notebook, which must be a `markdown` cell starting with `# `. |
+| "Kernel not found" or `ModuleNotFoundError` in JupyterLab | JupyterLab was started outside the environment. Activate the environment and start `jupyter lab` from there. |
+| You want to rebuild everything from scratch | Delete the folder `_build/` and build again. |
+
+## Reproducibility notes
+
+- The packages are listed in `requirements.txt` with lower bounds. To record the exact versions you used, run `pip freeze > requirements-lock.txt` and keep that file with your copy.
+- Every notebook uses a fixed random seed. Results that depend on random numbers should therefore be identical on your machine, up to small differences due to library versions or hardware.
+- All notebooks are designed to run on an ordinary laptop CPU; a GPU is never required.

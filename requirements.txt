@@ -1,0 +1,24 @@
+# Python packages for the book "Machine Learning with Python: From Linear Algebra to Deep Learning".
+# Install with:  pip install -r requirements.txt
+#
+# The lower bounds are indicative. The outputs of the book were produced with the exact
+# versions printed at the top of Chapter 1 (Section 1.1); older versions may work but are untested.
+# PyTorch is not needed yet: it is introduced in Part IV, with installation instructions.
+
+# Scientific stack
+numpy>=2.0
+scipy>=1.13
+pandas>=2.2
+matplotlib>=3.9
+seaborn>=0.13
+scikit-learn>=1.5
+
+# Notebooks
+jupyterlab>=4
+jupyterlab-myst
+ipykernel
+jupytext
+
+# Building and publishing the book
+jupyter-book>=2
+ghp-import

@@ -1,0 +1,47 @@
+# Configuration of the book (Jupyter Book 2 / MyST).
+# Documentation: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  title: "Machine Learning with Python: From Linear Algebra to Deep Learning"
+  subtitle: "A Hands-On Mathematical Guide with Jupyter Notebooks, scikit-learn and PyTorch"
+  description: >-
+    A university-level, practice-first textbook on machine learning: the mathematics of linear algebra
+    and calculus, Python code on real datasets, worked examples and exercises, from k-nearest neighbors
+    and support vector machines to neural networks, transformers and reinforcement learning.
+  keywords:
+    - machine learning
+    - deep learning
+    - Python
+    - linear algebra
+    - scikit-learn
+    - PyTorch
+    - Jupyter notebooks
+    - textbook
+  authors:
+    - name: Mario Medone
+      github: Brosss98
+  github: https://github.com/Brosss98/machine-learning-with-python-book
+  license:
+    content: CC-BY-NC-SA-4.0
+    code: MIT
+  # The table of contents. Paths are relative to this file.
+  # The notebooks (.ipynb) are produced from the percent files (.py) by
+  # `python tools/book.py execute`. Add each new chapter here when it is published.
+  toc:
+    - file: front_matter/index.md
+    - file: front_matter/copyright.md
+    - file: front_matter/preface.md
+    - file: front_matter/how-to-use.md
+    - file: front_matter/notation.md
+    - title: "Part I — Foundations"
+      children:
+        - file: chapters/ch01_what_is_machine_learning.ipynb
+        - file: chapters/ch01_setup_guide.md
+    - title: "Appendices"
+      children:
+        - file: appendices/appendix_c_solutions.ipynb
+site:
+  template: book-theme
+  options:
+    # Text shown at the top left of every page (replaces the default "Made with MyST").
+    logo_text: "Machine Learning with Python"

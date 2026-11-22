@@ -1,0 +1,13 @@
+# Conda / mamba environment (alternative to a pip virtual environment).
+#   conda env create -f environment.yml
+#   conda activate ml-book
+# Node.js is needed by Jupyter Book 2; conda installs it for you.
+name: ml-book
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.11
+  - nodejs
+  - pip
+  - pip:
+      - -r requirements.txt
