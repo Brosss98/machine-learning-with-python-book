@@ -9,6 +9,8 @@ The workflow keeps all computation on YOUR computer:
     execute      .py (percent) -> executed .ipynb, with all outputs and figures stored inside
     build        executed notebooks -> static HTML in _build/html (no code is run by this step);
                  it also regenerates _build/html/sitemap.xml and robots.txt (see ``sitemap``)
+                 and copies the files of ``site_root/`` (for example the Google Search Console
+                 verification file) to the root of the site
     sitemap      (re)generate _build/html/sitemap.xml and robots.txt from the pages that were actually built
     publish      push _build/html to the gh-pages branch (GitHub only serves the files)
     preview      live preview server while you write (Jupyter Book)
@@ -52,6 +54,7 @@ DEFAULT_BASE_URL = f"/{REPO_NAME}"                  # GitHub Pages serves a proj
 VERSION_FILE = REPO_ROOT / "VERSION"
 FILES_WITH_VERSION = ["front_matter/index.md", "front_matter/copyright.md", "CITATION.cff"]
 SITE_URL = os.environ.get("BOOK_SITE_URL", "https://brosss98.github.io/" + REPO_NAME).rstrip("/")   # public address of the book
+SITE_ROOT_DIR = REPO_ROOT / "site_root"                      # files copied as they are to the root of the site
 SITEMAP_STATE = REPO_ROOT / "tools" / "sitemap_state.json"   # remembers when each page last changed (commit it)
 
 
@@ -158,12 +161,34 @@ def cmd_execute(args: argparse.Namespace) -> None:
     print(f"\nExecuted {done} notebook(s), skipped {skipped}.")
 
 
-# ----------------------------------------------------------------------------- sitemap
+# ----------------------------------------------------------------------------- sitemap and site root
+def site_root_files() -> list[Path]:
+    """Files of site_root/ (README.md excluded), relative to that folder."""
+    if not SITE_ROOT_DIR.is_dir():
+        return []
+    return sorted(f.relative_to(SITE_ROOT_DIR) for f in SITE_ROOT_DIR.rglob("*")
+                  if f.is_file() and f.name != "README.md" and not f.name.startswith("."))
+
+
+def copy_site_root(*, dry_run: bool) -> None:
+    """Copy site_root/* to _build/html, so that 'publish' puts them at the root of the site."""
+    for rel in site_root_files():
+        if dry_run:
+            print(f"[dry-run] would copy site_root/{rel.as_posix()} to the root of the site")
+            continue
+        target = HTML_DIR / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(SITE_ROOT_DIR / rel, target)
+        print(f"copied site_root/{rel.as_posix()} to the root of the site")
+
+
 def html_pages() -> list[tuple[str, Path]]:
     """Public pages found in _build/html, as (absolute URL, file). Assets and 404 pages are skipped."""
-    pages = []
+    pages, extra = [], set(site_root_files())
     for f in sorted(HTML_DIR.rglob("*.html")):
         rel = f.relative_to(HTML_DIR)
+        if rel in extra:
+            continue                                    # verification files and the like are not pages of the book
         if any(part.startswith(("_", ".")) or part == "build" for part in rel.parts[:-1]) or rel.name == "404.html":
             continue
         head = f.read_text(encoding="utf-8", errors="ignore")[:20000].lower()
@@ -239,6 +264,7 @@ def cmd_build(args: argparse.Namespace) -> None:
     if not args.dry_run:
         BUILD_DIR.mkdir(exist_ok=True)
         BUILD_MODE_FILE.write_text("local" if args.local else "github-pages")
+    copy_site_root(dry_run=args.dry_run)
     if not args.local:
         write_sitemap(dry_run=args.dry_run)           # always regenerated, so it is never out of date
     if args.local:
