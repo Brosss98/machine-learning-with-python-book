@@ -1,0 +1,4 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Sitemap: https://brosss98.github.io/machine-learning-with-python-book/sitemap.xml
