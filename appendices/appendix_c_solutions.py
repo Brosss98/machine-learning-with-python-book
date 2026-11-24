@@ -882,3 +882,282 @@ solution_3_10()
 
 # %% [markdown]
 # **Hoeffding's interval is valid but very conservative**: its coverage is 1.000 (or 0.999) in every row, much above the nominal 0.95, and it is two to five times wider than the others (a half-width of 0.30 for $m = 20$, which is useless for estimating an error rate of 0.03). **The Wald interval fails where it matters:** for a small error rate and a small test set its coverage is only 0.46 ($p = 0.03$, $m = 20$) and 0.78 ($m = 50$), because when $K = 0$ it collapses to a point and in general it relies on a normal approximation that is not accurate for $mp < 5$. For $p = 0.2$ and $m \ge 50$ it is fine. **The Wilson interval** has coverage close to 0.95 in all cases (0.937 to 0.979) and a width that is similar to the Wald interval where the latter works and larger where the Wald fails. It is the interval to report in practice; the Clopper–Pearson interval (`method="exact"`) is a conservative alternative that guarantees coverage at least 0.95 at the price of being slightly wider. Hoeffding's interval remains the right tool when a *guaranteed* statement without any approximation is needed, and as the formula to plan the size of a test set in advance.
+
+# %% [markdown]
+# ## C.4 Chapter 4
+#
+# ### Manual exercises
+#
+# **Solution 4.1 — k-NN by hand, with weights.** The distances from $x = 5$ to $1, 2, 4, 7, 9, 10$ are $4, 3, 1, 2, 4, 5$. Sorted: $x = 4$ (distance 1, label 1), $x = 7$ (2, label 1), $x = 2$ (3, label 0), then $x = 1$ and $x = 9$ **tied** at distance 4 (labels 0 and 0), and $x = 10$ (5, label 0).
+#
+# (a) $k = 1$: label 1. $k = 3$: the neighbors are $4, 7, 2$ with labels $1, 1, 0$: label **1**. $k = 5$: the neighbors are $4, 7, 2, 1, 9$ (the tie at distance 4 does not matter, because both tied points enter) with labels $1, 1, 0, 0, 0$: label **0**. The prediction changes with $k$.
+#
+# (b) Weighted votes with $k = 5$: class 1 receives $1/1 + 1/2 = 1.5$; class 0 receives $1/3 + 1/4 + 1/4 = 0.833$. The predicted class is **1**: the two close neighbors outweigh the three far ones, and the weighted vote is less sensitive to the choice of $k$ (it agrees with $k = 1$ and $k = 3$).
+#
+# (c) With $k = 6$ all the training points vote: the labels are $0, 0, 1, 1, 0, 0$, four zeros against two ones, so the vote gives 0 **for every query whatsoever**. It is a property of the method with $k = n$, not of the query: it ignores $x$ and returns the majority class of the training set, which is the rule of the smallest flexibility (the constant predictor of Chapter 1). If the classes had been split evenly, the answer would have depended on the tie-breaking rule of the implementation, as in Worked example 4.1.
+#
+# (d) The training error of 1-NN is **0**: each training point is its own nearest neighbor (distance 0). For 6-NN it is the proportion of points whose label differs from the training majority (0): $2/6 = 1/3$. The training error cannot be used to choose $k$.
+#
+# **Solution 4.2 — Bias and variance at the boundary and in the interior.** With $f(x) = x$ and the formulas of Section 4.5.2:
+#
+# (a) At $x_0 = 0$ the $k$ nearest neighbors are $x_1, \dots, x_k$ (that is, $0, 0.01, \dots, (k-1)/100$), whose average is $(k - 1)/200$. Hence the bias is $-(k - 1)/200$, the variance is $\sigma^2/k = 0.25/k$, and the expected squared error is
+# $$
+# 0.25 + \Big(\frac{k - 1}{200}\Big)^2 + \frac{0.25}{k}.
+# $$
+# For $k = 1, 5, 11, 21, 31, 51$ it is $0.500$, $0.300$, $0.275$, $0.272$, $0.281$, $0.317$.
+#
+# (b) At $x_0 = 0.5$ and odd $k$ the neighbors are symmetric around $x_0$, so the average of the linear function over them is exactly $f(x_0)$: the **bias is zero for every odd $k$**, and the error is $0.25 + 0.25/k$, which decreases with $k$ down to $0.25 + 0.25/101 = 0.2525$ for $k = 101$.
+#
+# (c) At the boundary the best $k$ minimizes $((k - 1)/200)^2 + 0.25/k$; the derivative vanishes where $k^2(k - 1) = 5000$, which is $k \approx 17$ (integer minimum at $k = 17$, with an excess error of $0.0211$). In the interior the best $k$ is the largest possible, because there is no bias to pay for. A single $k$ for the whole range is therefore a compromise: $k = 17$ is too small in the interior (excess error $0.25/17 = 0.0147$, against $0.0025$ with $k = 101$), and a large $k$ is damaging at the boundary ($k = 101$: the bias is $-0.5$, so bias$^2 = 0.25$ and the excess error is $0.2525$). This is one reason why local methods that adapt the neighborhood to the location, or correct the boundary bias by fitting a *local line* instead of a local constant, are preferred in practice.
+#
+# **Solution 4.3 — Cover–Hart with numbers.**
+#
+# (a) $R^\ast = \tfrac12\min\{0.9, 0.1\} + \tfrac12\min\{0.2, 0.8\} = \tfrac12 (0.1) + \tfrac12 (0.2) = \mathbf{0.15}$.
+#
+# (b) $R_{1\text{-NN}} = \tfrac12\cdot 2 \cdot 0.9 \cdot 0.1 + \tfrac12 \cdot 2 \cdot 0.2 \cdot 0.8 = 0.09 + 0.16 = \mathbf{0.25}$. The bound is $2R^\ast(1 - R^\ast) = 2 \cdot 0.15 \cdot 0.85 = 0.255$: the 1-NN risk is just below it, almost twice the Bayes risk (the ratio is $1.67$). The bound is nearly attained here because $r = \min(\eta, 1-\eta)$ takes the two values 0.1 and 0.2, which are close to each other; Jensen's inequality used in the proof is an equality when $r$ is constant.
+#
+# (c) For $\eta = 0.9$: $p_1 = 3(0.81) - 2(0.729) = 0.972$ and the error is $0.9(0.028) + 0.1(0.972) = 0.1224$. For $\eta = 0.2$: $p_1 = 3(0.04) - 2(0.008) = 0.104$ and the error is $0.2(0.896) + 0.8(0.104) = 0.2624$. Averaging, $R_{3\text{-NN}} = \tfrac12(0.1224 + 0.2624) = \mathbf{0.1924}$.
+#
+# (d) The gap between 1-NN and Bayes is $0.25 - 0.15 = 0.10$; with $k = 3$ it is $0.1924 - 0.15 = 0.0424$, so $k = 3$ closes $(0.25 - 0.1924)/0.10 = 58\%$ of the gap. Larger $k$ closes more, and the limit is the Bayes risk.
+#
+# **Solution 4.4 — Counting in high dimensions.**
+#
+# (a) $n s^d = 1$ with $s = 0.1$ gives $n = 10^d$: $10, 100, 10^5, 10^{10}$ and $10^{20}$ points for $d = 1, 2, 5, 10, 20$. (Ten billion points in dimension 10 just to have one neighbor within 10% of the range of every feature.)
+#
+# (b) $s = (k/n)^{1/d} = (10^{-5})^{1/d}$: $0.003$ for $d = 2$, $0.316$ for $d = 10$, $0.794$ for $d = 50$ and $0.891$ for $d = 100$. With a million points, in dimension 10 the cube that contains ten points spans 32% of each range; in dimension 100, 89%.
+#
+# (c) A point is *not* within $0.05$ of the boundary when all its coordinates lie in $[0.05, 0.95]$, which has probability $0.9^d$. The fraction near the boundary is $1 - 0.9^d$: $0.19$ for $d = 2$, $0.65$ for $d = 10$ and $0.995$ for $d = 50$. In high dimensions almost all the points are near the boundary of the cube, and the neighbors of a typical point are all on one side of it: the boundary effect of Figures 4.4 and 4.5, now everywhere.
+#
+# **Solution 4.5 — The best $k$ in $d$ dimensions.**
+#
+# (a) The bias at $\mathbf{x}_0$ is $\frac1k\sum_{i}(f(\mathbf{x}_0) - f(\mathbf{x}_i))$, and each term is at most $L\lVert\mathbf{x}_0 - \mathbf{x}_i\rVert \le Lr$ in absolute value, so $\text{bias}^2 \le L^2r^2$. The variance is $\sigma^2/k$ (Section 4.5.2). From $k = n v_d r^d$ we get $r = (k/(n v_d))^{1/d}$ and the bound $L^2\big(k/(nv_d)\big)^{2/d} + \sigma^2/k$.
+#
+# (b) Differentiating, $\frac{2}{d}L^2(nv_d)^{-2/d}k^{2/d - 1} - \sigma^2k^{-2} = 0$, i.e. $k^{(d+2)/d} = \frac{d\sigma^2}{2L^2}(nv_d)^{2/d}$, and raising to the power $d/(d+2)$ gives
+# $$
+# k^\ast = \Big(\frac{d\sigma^2}{2L^2}\Big)^{d/(d+2)}(nv_d)^{2/(d+2)} .
+# $$
+# At the optimum the two terms are of the same order (the variance term is $\sigma^2/k^\ast \propto n^{-2/(d+2)}$), so the minimal bound is proportional to $n^{-2/(d+2)}$.
+#
+# (c) To halve a bound that is $\propto n^{-2/(d+2)}$ the sample size must be multiplied by $2^{(d+2)/2}$: $2.8$ for $d = 1$, $4$ for $d = 2$, $11.3$ for $d = 5$ and $64$ for $d = 10$.
+#
+# (d) For $n = 10^4$, $L = \sigma = 1$: $k^\ast = 585$ for $d = 1$ (a fraction $0.058$ of the data), $43$ for $d = 5$ and $21$ for $d = 10$, with bounds $0.0026$, $0.081$ and $0.289$ on the excess error (for a noise variance of 1). In dimension 10, even with 10,000 points the best neighborhood contains only 21 points and has a radius $r = (21/(10^4 \cdot 2.55))^{1/10} = 0.48$, about half of the range of each feature: the Lipschitz assumption is then not enough to say that the function is nearly constant in the neighborhood, and the guarantee is poor. (The bound is an upper bound and real problems are often easier, as Digits shows; but the exponent $2/(d+2)$ cannot be improved without assumptions beyond Lipschitz continuity.)
+#
+# ### Python exercises
+
+# %%
+def solution_4_6():
+    from sklearn.datasets import load_diabetes
+    from sklearn.model_selection import train_test_split
+    from sklearn.neighbors import KNeighborsRegressor
+
+    X, y = load_diabetes(return_X_y=True)
+
+    def knn_regress(X_train, y_train, X_test, k):
+        """k-NN regression with the Euclidean distance: average of the targets of the k nearest training points."""
+        sq_train, sq_test = (X_train ** 2).sum(axis=1), (X_test ** 2).sum(axis=1)
+        D2 = sq_test[:, None] + sq_train[None, :] - 2 * X_test @ X_train.T
+        nearest = np.argpartition(D2, kth=k - 1, axis=1)[:, :k]
+        return y_train[nearest].mean(axis=1)
+
+    k, agree, mse_ours, mse_sk = 20, [], [], []
+    for seed in range(30):
+        Xa, Xb, ya, yb = train_test_split(X, y, test_size=0.3, random_state=seed)
+        ours = knn_regress(Xa, ya, Xb, k)
+        theirs = KNeighborsRegressor(n_neighbors=k).fit(Xa, ya).predict(Xb)
+        agree.append(np.mean(np.isclose(ours, theirs)))
+        mse_ours.append(np.mean((ours - yb) ** 2)); mse_sk.append(np.mean((theirs - yb) ** 2))
+    print(f"fraction of identical predictions, averaged over 30 splits: {np.mean(agree):.4f} (minimum {np.min(agree):.4f})")
+    print(f"mean test MSE, k = {k}: ours {np.mean(mse_ours):.1f} | scikit-learn {np.mean(mse_sk):.1f}")
+
+
+solution_4_6()
+
+# %% [markdown]
+# The two implementations agree on **every** prediction of every split (the fraction of identical predictions is 1.0000), and the mean test MSE for $k = 20$ on the ten features is 3,310 on these 30 splits (the value 3,283 of Section 4.4 was obtained with 20 other splits). Regression has no vote, so the tie problem of classification is only relevant when the sum of the targets of the neighbors is affected by which of the tied points is chosen, which is a very rare event on continuous data.
+
+# %%
+def solution_4_7():
+    import warnings
+
+    rng = np.random.default_rng(SEED)
+    f_step = lambda x: (x > 0.5).astype(float)
+    sigma, n, n_sets = 0.3, 100, 2000
+    points = np.array([0.2, 0.5])
+    knn_ks, degrees = [1, 5, 10, 20, 50], [1, 3, 9]
+
+    preds = {("k-NN", k): np.zeros((n_sets, 2)) for k in knn_ks}
+    preds.update({("polynomial", m): np.zeros((n_sets, 2)) for m in degrees})
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")                                   # polyfit warns about the conditioning of degree 9
+        for s in range(n_sets):
+            x = rng.uniform(0, 1, n)
+            y = f_step(x) + rng.normal(0, sigma, n)
+            order = np.argsort(np.abs(x[None, :] - points[:, None]), axis=1)
+            for k in knn_ks:
+                preds[("k-NN", k)][s] = y[order[:, :k]].mean(axis=1)
+            for m in degrees:
+                preds[("polynomial", m)][s] = np.polyval(np.polyfit(x, y, m), points)
+
+    rows = []
+    for (family, par), P in preds.items():
+        for j, x0 in enumerate(points):
+            b2 = (P[:, j].mean() - f_step(np.array([x0]))[0]) ** 2
+            v = P[:, j].var()
+            rows.append({"method": f"{family}, {'k' if family == 'k-NN' else 'degree'} = {par}", "x0": x0, "bias^2": b2, "variance": v, "expected error": sigma ** 2 + b2 + v})
+    table = pd.DataFrame(rows).pivot(index="method", columns="x0", values=["bias^2", "variance", "expected error"])
+    order_rows = [f"k-NN, k = {k}" for k in knn_ks] + [f"polynomial, degree = {m}" for m in degrees]
+    print(table.loc[order_rows].round(4).to_string())
+    print(f"\nnoise level sigma^2 = {sigma ** 2:.2f}")
+
+
+solution_4_7()
+
+# %% [markdown]
+# **At $x_0 = 0.2$**, in the flat part of the function, k-NN has no bias until the neighborhood becomes wide enough to reach the jump ($k = 50$: bias$^2 = 0.0014$), so the expected error falls from $0.176$ at $k = 1$ (variance $0.086 \approx \sigma^2$) to a minimum of $0.094$ at $k = 20$, close to the noise floor $0.09$; for larger $k$ the bias starts to grow. Among the polynomials, degree 1 is best ($0.095$): a line is a good local approximation of a constant (bias$^2$ $0.0023$) and has small variance ($0.0029$), degree 3 has the largest bias at this point ($0.0118$, the cubic oscillates to approximate the step) and degree 9 a lower bias ($0.0022$) but the largest variance ($0.0079$).
+#
+# **At $x_0 = 0.5$**, exactly at the jump, *every* method has bias$^2 \approx 0.25$: a smooth predictor, or an average over neighbors on both sides of the jump, returns about $0.5$ while $f(0.5) = 0$, and the bias is $0.5$ whatever the method. Nothing can be done about it with this kind of method (a discontinuity is not "smooth"), so the ranking is decided by the variance, and it is *inverted* with respect to the previous point: the larger the $k$, the better ($0.684$ at $k = 1$, $0.347$ at $k = 50$), and the degree-1 polynomial, with the smallest variance, is best overall ($0.341$). The same method is therefore best or worst depending on the location: the optimal degree of smoothing depends on where we are in the input space, a fact that adaptive methods exploit (Chapter 11).
+
+# %%
+def solution_4_8():
+    from sklearn.datasets import load_diabetes
+    from sklearn.model_selection import train_test_split
+    from sklearn.neighbors import KNeighborsRegressor
+
+    X, y = load_diabetes(return_X_y=True)
+    x = X[:, 2]                                                           # bmi
+
+    def nadaraya_watson(x_train, y_train, x_test, h):
+        d2 = (x_test[:, None] - x_train[None, :]) ** 2
+        w = np.exp(-(d2 - d2.min(axis=1, keepdims=True)) / (2 * h * h))    # subtracting the smallest d2 avoids 0/0 far from the data
+        return (w * y_train).sum(axis=1) / w.sum(axis=1)
+
+    hs = np.array([0.004, 0.006, 0.008, 0.012, 0.016, 0.024, 0.032, 0.048, 0.064, 0.1])
+    ks = [10, 20, 30, 40, 60, 80]
+    mse_h, mse_k = np.zeros((20, len(hs))), np.zeros((20, len(ks)))
+    for r in range(20):
+        xa, xb, ya, yb = train_test_split(x, y, test_size=0.3, random_state=r)
+        for j, h in enumerate(hs):
+            mse_h[r, j] = np.mean((nadaraya_watson(xa, ya, xb, h) - yb) ** 2)
+        for j, k in enumerate(ks):
+            mse_k[r, j] = np.mean((KNeighborsRegressor(n_neighbors=k).fit(xa[:, None], ya).predict(xb[:, None]) - yb) ** 2)
+    print("kernel regression, test MSE by bandwidth h:", {float(h): int(round(v)) for h, v in zip(hs, mse_h.mean(axis=0))})
+    print("k-NN regression, test MSE by k           :", {k: int(round(v)) for k, v in zip(ks, mse_k.mean(axis=0))})
+    h_best, k_best = hs[mse_h.mean(axis=0).argmin()], ks[mse_k.mean(axis=0).argmin()]
+    print(f"best: h = {h_best} (MSE {mse_h.mean(axis=0).min():.0f}) | k = {k_best} (MSE {mse_k.mean(axis=0).min():.0f})")
+
+    grid = np.linspace(x.min(), x.max(), 400)
+    fit_h = nadaraya_watson(x, y, grid, h_best)
+    fit_k = KNeighborsRegressor(n_neighbors=k_best).fit(x[:, None], y).predict(grid[:, None])
+    for x_probe in (-0.05, 0.0, 0.1, 0.15):
+        in_window = int(np.sum(np.abs(x - x_probe) <= h_best))
+        print(f"x = {x_probe:+.2f}: points within +/- h: {in_window:>3} | radius of the {k_best}-NN neighborhood: {np.sort(np.abs(x - x_probe))[k_best - 1]:.3f}"
+              f" | fits: kernel {nadaraya_watson(x, y, np.array([x_probe]), h_best)[0]:.0f}, k-NN {fit_k[np.argmin(np.abs(grid - x_probe))]:.0f}")
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    ax.scatter(x, y, s=12, color="gray", alpha=0.4, label="patients")
+    ax.plot(grid, fit_h, color=VERMILION, linewidth=2.2, label=f"kernel regression, h = {h_best}")
+    ax.plot(grid, fit_k, color=BLUE, linewidth=2.2, linestyle="--", label=f"k-NN, k = {k_best}")
+    ax.set(xlabel="body-mass index (centered and scaled)", ylabel="disease progression", title="Fixed bandwidth against fixed number of neighbors")
+    ax.legend(frameon=False, loc="upper left")
+    fig.tight_layout()
+    plt.show()
+
+
+solution_4_8()
+
+# %% [markdown]
+# With a bandwidth of $h = 0.016$ the kernel regression has a test MSE of 3,863, against 3,966 for the best k-NN ($k = 40$): about 3% lower, a difference that these 20 splits cannot establish as significant. The figure and the last lines of the output show where the two methods differ. In the **dense** region ($x = -0.05$ and $x = 0$: 88 and 112 points in the window $\pm h$) the two fits coincide (108 against 107, and 150 against 147), because both average a few dozen nearby points. In the **sparse** region ($x = 0.15$) only 2 patients fall within $\pm h$: the kernel estimate (286) is determined by two points and is therefore noisy (the wiggle at the right end of the figure), while k-NN is forced to average 40 patients, reaching out to a distance of $0.082$, which gives a flat, smoother and more biased estimate (248; all its neighbors lie on one side). This is the essential difference: **a fixed bandwidth has the same bias everywhere and a variance that depends on the local density, while a fixed $k$ has the same variance everywhere and a bias that grows where the data are sparse.** (Kernel regression also gives a smooth curve, whereas k-NN gives a staircase.) Both are special cases of local averaging with weights that decrease with the distance, and Chapter 9 will show kernels in a different role.
+
+# %%
+def solution_4_9():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.feature_selection import SelectKBest, f_classif
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_breast_cancer(return_X_y=True)
+    rows = []
+    for m in (100, 1000):
+        res = {"5-NN": [], "selection + 5-NN (pipeline)": [], "logistic regression": [], "selection BEFORE the split + 5-NN (leak)": []}
+        kept = []
+        for r in range(15):
+            Z = np.hstack([X, np.random.default_rng(r).normal(size=(len(X), m))])
+            Za, Zb, ya, yb = train_test_split(Z, y, test_size=0.3, random_state=r, stratify=y)
+            res["5-NN"].append(make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5)).fit(Za, ya).score(Zb, yb))
+            pipe = make_pipeline(StandardScaler(), SelectKBest(f_classif, k=30), KNeighborsClassifier(n_neighbors=5)).fit(Za, ya)
+            res["selection + 5-NN (pipeline)"].append(pipe.score(Zb, yb))
+            kept.append(pipe[1].get_support()[:30].sum())
+            res["logistic regression"].append(make_pipeline(StandardScaler(), LogisticRegression(max_iter=3000)).fit(Za, ya).score(Zb, yb))
+            # the mistake: the selection sees all the labels, test samples included
+            Zs = SelectKBest(f_classif, k=30).fit_transform(StandardScaler().fit_transform(Z), y)
+            Zsa, Zsb, ysa, ysb = train_test_split(Zs, y, test_size=0.3, random_state=r, stratify=y)
+            res["selection BEFORE the split + 5-NN (leak)"].append(KNeighborsClassifier(n_neighbors=5).fit(Zsa, ysa).score(Zsb, ysb))
+        print(f"\n{m} noise columns:")
+        for name, v in res.items():
+            print(f"  {name:<42}{np.mean(v):.4f}  (std {np.std(v):.4f})")
+        print(f"  original features among the 30 selected: {np.mean(kept):.1f} of 30")
+
+
+solution_4_9()
+
+# %% [markdown]
+# With 100 noise columns the plain 5-NN has an accuracy of 0.910; with the selection step inside the pipeline it recovers 0.955, better than logistic regression (0.945); with 1,000 noise columns the numbers are 0.803 and 0.957 against 0.923. On average 25 of the 30 selected features are original ones, out of 100 or 1,000 candidates that are mostly noise: the F-statistic of Chapter 10 finds the informative features easily because they carry a strong signal. The scores of 5-NN are almost the same with 100 and with 1,000 noise columns *after the selection*, which shows that it is the number of *irrelevant features that reach the distance* that damages k-NN, not the number of columns in the table.
+#
+# (c) The version with the selection done **before** the split (the leak of Section 2.7) gives 0.956 and 0.954: practically the same as the correct pipeline, and well inside the standard deviation over the splits (0.012 to 0.015). Here the leak is harmless because the signal is real and strong: the same 25 or so original features would be selected from the training set alone. As in Exercise 2.10, the leak becomes dangerous when the selection can exploit *chance* correlations, that is when there are many candidate features and few samples or no real signal; the pipeline is the safe habit in every case, because one cannot know beforehand which case one is in.
+
+# %%
+def solution_4_10():
+    from scipy import stats
+    from sklearn.neighbors import KNeighborsClassifier
+
+    rng = np.random.default_rng(SEED)
+    bayes = stats.norm.cdf(-1)
+    sizes = [30, 100, 300, 1000, 3000, 10000]
+    rules = {"k ≈ √n": lambda n: min(int(round(np.sqrt(n))) | 1, n), "k ≈ n^(2/3)": lambda n: min(int(round(n ** (2 / 3))) | 1, n)}
+
+    def draw(n, d):
+        y = rng.integers(0, 2, n)
+        X = rng.normal(size=(n, d))
+        X[:, 0] += 2 * y
+        return X, y
+
+    results = {}
+    for d in (2, 10):
+        X_fresh, y_fresh = draw(20_000, d)
+        rows = []
+        for n in sizes:
+            errs = {name: [] for name in rules}
+            for _ in range(6):
+                X_s, y_s = draw(n, d)
+                for name, k_of_n in rules.items():
+                    model = KNeighborsClassifier(n_neighbors=k_of_n(n), algorithm="brute").fit(X_s, y_s)
+                    errs[name].append(np.mean(model.predict(X_fresh) != y_fresh))
+            rows.append({"n": n, **{name: np.mean(v) for name, v in errs.items()}})
+        results[d] = pd.DataFrame(rows).set_index("n")
+        print(f"d = {d}   (Bayes risk {bayes:.4f})")
+        print(results[d].round(4).to_string())
+        for name in rules:
+            ok = results[d].index[(results[d][name] - bayes) <= 0.01]
+            print(f"   smallest n within 0.01 of the Bayes risk, {name}: {ok.min() if len(ok) else 'none in the grid'}")
+        print()
+
+    fig, ax = plt.subplots(figsize=(7.4, 4.5))
+    for d, (color, marker) in {2: (BLUE, "o"), 10: (VERMILION, "s")}.items():
+        for name, ls in zip(rules, ["-", "--"]):
+            ax.plot(sizes, results[d][name], color=color, marker=marker, linestyle=ls, linewidth=2, label=f"d = {d}, {name}")
+    ax.axhline(bayes, color="black", linewidth=1.4)
+    ax.text(32, bayes + 0.004, "Bayes risk", fontsize=9.5)
+    ax.set_xscale("log")
+    ax.set(xlabel="training-set size $n$", ylabel="test error", title="Consistency is slower in higher dimension (simulated data)")
+    ax.legend(frameon=False, fontsize=9)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_4_10()
+
+# %% [markdown]
+# In dimension 2 the error is within 0.01 of the Bayes risk (0.1587) from $n = 100$ on for both rules, and reaches 0.157 at $n = 10{,}000$, as in Figure 4.8. In dimension 10, **with exactly the same Bayes risk and with only the first coordinate informative**, the convergence is much slower: at $n = 100$ the errors are 0.213 and 0.205 (against 0.168 and 0.165 in dimension 2), and the smallest $n$ of the grid within 0.01 of the Bayes risk is 3,000 for $k \approx \sqrt{n}$ and 1,000 for $k \approx n^{2/3}$, 30 and 10 times larger than in dimension 2. Nine useless coordinates make the distances noisy: two points of the same class are as far apart as two of different classes unless $n$ is large enough for the nearest neighbors to be close in all ten coordinates at once, which is the third face of the curse (Section 4.7.1). Note also that the larger $k$ is better in dimension 10 at every $n$ of the grid: when the individual neighbors are less informative, averaging more of them pays. (Exercise 4.9 shows how to reduce the penalty, by removing the useless coordinates.)

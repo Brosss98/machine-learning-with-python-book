@@ -60,6 +60,16 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $d_{\mathrm{VC}}$ | Vapnik–Chervonenkis dimension: the size of the largest set of points that $\mathcal{H}$ can label in all possible ways |
 | $\hat{\mathfrak{R}}_S(\mathcal{F}),\ \mathfrak{R}_n(\mathcal{F})$ | Empirical and expected Rademacher complexity of a class $\mathcal{F}$ |
 
+## Local methods and bias–variance (Chapter 4)
+
+| Symbol | Meaning |
+|---|---|
+| $N_k(\mathbf{x})$ | The set of the $k$ training points nearest to $\mathbf{x}$ (its $k$ nearest neighbors) |
+| $\hat f_k(\mathbf{x})$ | The prediction of the $k$-nearest-neighbor method at $\mathbf{x}$ |
+| $f$ | The true regression function, $f(\mathbf{x}) = \mathbb{E}[y\mid\mathbf{x}]$ (the function called $\eta$ in Chapter 3) |
+| $\sigma^2$ | Variance of the noise, $y = f(\mathbf{x}) + \varepsilon$ |
+| $\text{bias}^2,\ \text{variance}$ | Squared systematic error and sensitivity to the training set of a prediction $\hat f_S(\mathbf{x}_0)$: $\mathbb{E}[(y_0-\hat f_S(\mathbf{x}_0))^2]=\sigma^2+\text{bias}^2+\text{variance}$ |
+
 ## Probability
 
 | Symbol | Meaning |

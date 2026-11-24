@@ -39,6 +39,9 @@ project:
         - file: chapters/ch01_setup_guide.md
         - file: chapters/ch02_python_math_toolkit.ipynb
         - file: chapters/ch03_statistical_learning_theory.ipynb
+    - title: "Part II — Classical Supervised Learning"
+      children:
+        - file: chapters/ch04_local_methods_knn_bias_variance.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb
