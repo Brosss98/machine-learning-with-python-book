@@ -42,6 +42,7 @@ project:
     - title: "Part II — Classical Supervised Learning"
       children:
         - file: chapters/ch04_local_methods_knn_bias_variance.ipynb
+        - file: chapters/ch05_model_evaluation_cv_tuning.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb

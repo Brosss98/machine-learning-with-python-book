@@ -1161,3 +1161,337 @@ solution_4_10()
 
 # %% [markdown]
 # In dimension 2 the error is within 0.01 of the Bayes risk (0.1587) from $n = 100$ on for both rules, and reaches 0.157 at $n = 10{,}000$, as in Figure 4.8. In dimension 10, **with exactly the same Bayes risk and with only the first coordinate informative**, the convergence is much slower: at $n = 100$ the errors are 0.213 and 0.205 (against 0.168 and 0.165 in dimension 2), and the smallest $n$ of the grid within 0.01 of the Bayes risk is 3,000 for $k \approx \sqrt{n}$ and 1,000 for $k \approx n^{2/3}$, 30 and 10 times larger than in dimension 2. Nine useless coordinates make the distances noisy: two points of the same class are as far apart as two of different classes unless $n$ is large enough for the nearest neighbors to be close in all ten coordinates at once, which is the third face of the curse (Section 4.7.1). Note also that the larger $k$ is better in dimension 10 at every $n$ of the grid: when the individual neighbors are less informative, averaging more of them pays. (Exercise 4.9 shows how to reduce the penalty, by removing the useless coordinates.)
+
+# %% [markdown]
+# ## C.5 Chapter 5
+#
+# ### Manual exercises
+#
+# **Solution 5.1 — How much can a validation set tell?**
+#
+# (a) $\hat p = 0.87$, so $\operatorname{SE} = \sqrt{0.87 \cdot 0.13/100} = 0.0336$ and the 95% interval is $0.87 \pm 1.96 \cdot 0.0336 = 0.87 \pm 0.066$, that is **[0.804, 0.936]**: a validation set of 100 examples cannot distinguish an 81% model from a 93% one.
+#
+# (b) We need $1.96\sqrt{p(1-p)/m} \le 0.02$, that is $m \ge 1.96^2\,p(1-p)/0.02^2$. For $p = 0.9$: $m \ge 3.8416 \cdot 0.09/0.0004 = 864.4$, so **865 examples**. In the worst case $p = \tfrac12$, $p(1-p) = 0.25$ and $m \ge 2{,}401$.
+#
+# (c) Hoeffding's inequality (Section 3.10.2) asks for $m \ge \ln(2/0.05)/(2 \cdot 0.02^2) = 4611.1$, that is **4,612 examples**: about twice the worst-case number of the normal approximation, and 5.3 times the number for $p = 0.9$. Hoeffding uses only the fact that the loss is in $[0, 1]$, so it holds for every $m$ and every $p$ without any approximation, but it ignores the variance $p(1-p)$, which is what makes the normal interval narrower when the accuracy is high. (The Wilson interval of Section 3.10.2 gets the best of both: it is valid for small samples and uses the variance.)
+#
+# (d) The first model is right on $85 + 5 = 90$ examples and the second on $85 + 2 = 87$. Only the $b + c = 7$ discordant examples carry information: if the models had the same error rate, $b \sim \text{Binomial}(7, \tfrac12)$, and
+# $$
+# p = 2\,\mathbb{P}\big(\text{Bin}(7, \tfrac12) \le 2\big) = 2\cdot\frac{1 + 7 + 21}{128} = \frac{58}{128} = \mathbf{0.453}.
+# $$
+# The unpaired comparison of two accuracies would give $z = 0.03/\sqrt{0.09/100 + 0.1131/100} = 0.67$, that is $p \approx 0.51$. Pairing helps, but here only slightly: with seven discordant examples the data simply contain little evidence about the difference.
+#
+# **Solution 5.2 — Counting model fits.**
+#
+# (a) Each of the $5 \times 4 = 20$ configurations is evaluated with $5 \times 3 = 15$ fits, so $20 \cdot 15 = 300$, plus one refit of the winner: **301 fits**.
+#
+# (b) Each outer fold runs the whole search on its training part (301 fits, including the refit of its winner, which is the model scored on the outer held-out fold): $5 \times 301 = \mathbf{1{,}505}$ fits.
+#
+# (c) Random search with 20 draws evaluates 20 configurations, exactly as many as the grid: $20 \cdot 15 + 1 = \mathbf{301}$ fits. (Random search saves nothing here; its advantage is that a *smaller* number of draws, say 8 or 10, often does as well as the full grid; see Exercise 5.8.)
+#
+# (d) Leave-one-out needs $n = 1000$ fits per configuration: $12 \cdot 1000 + 1 = \mathbf{12{,}001}$ fits.
+#
+# For a model that takes one minute to fit these are 301 minutes (five hours), 1,505 minutes (25 hours) and 12,001 minutes (more than eight days). The design must change: fewer folds or no repeats, a smaller or random search, successive halving, a faster surrogate model for the search, parallel execution, or a single validation split instead of cross-validation.
+#
+# **Solution 5.3 — ROC and AUC by hand.** Sorted by decreasing score, the examples are $0.9^{+}, 0.7^{-}, 0.6^{+}, 0.4^{+}, 0.4^{-}, 0.2^{-}, 0.1^{-}$, with $n_+ = 3$ and $n_- = 4$.
+#
+# (a) Lowering the threshold past each block of scores, the curve moves up by $1/3$ for each positive and right by $1/4$ for each negative; the two tied examples at 0.4 are passed together, a diagonal step. The points $(\text{FPR}, \text{TPR})$ are
+# $$
+# (0, 0),\ (0, \tfrac13),\ (\tfrac14, \tfrac13),\ (\tfrac14, \tfrac23),\ (\tfrac12, 1),\ (\tfrac34, 1),\ (1, 1).
+# $$
+#
+# (b) Trapezoid rule: the vertical steps have zero width; the horizontal step from $(0, \tfrac13)$ to $(\tfrac14, \tfrac13)$ contributes $\tfrac14\cdot\tfrac13 = \tfrac1{12}$; the diagonal step from $(\tfrac14, \tfrac23)$ to $(\tfrac12, 1)$ contributes $\tfrac14\cdot\tfrac{(2/3 + 1)}{2} = \tfrac{5}{24}$; the last two steps contribute $\tfrac14 + \tfrac14 = \tfrac12$. The total is $\tfrac{2}{24} + \tfrac{5}{24} + \tfrac{12}{24} = \tfrac{19}{24} = \mathbf{0.7917}$. Counting pairs: the positive 0.9 beats all 4 negatives; the positive 0.6 beats 3 (0.4, 0.2, 0.1) and loses to 0.7; the positive 0.4 beats 2 (0.2, 0.1), loses to 0.7 and ties with the other 0.4, which counts $\tfrac12$. The total is $4 + 3 + 2.5 = 9.5$ pairs of 12, and $9.5/12 = \tfrac{19}{24}$: **the two computations agree**, as Proposition 5.1 says.
+#
+# (c) Predicting positive when the score is at least $t$:
+#
+# | $t$ | TP | FP | precision | recall | $F_1$ |
+# |---|---|---|---|---|---|
+# | 0.9 | 1 | 0 | 1 | 1/3 | 0.500 |
+# | 0.7 | 1 | 1 | 1/2 | 1/3 | 0.400 |
+# | 0.6 | 2 | 1 | 2/3 | 2/3 | 0.667 |
+# | 0.4 | 3 | 2 | 3/5 | 1 | **0.750** |
+# | 0.2 | 3 | 3 | 1/2 | 1 | 0.667 |
+# | 0.1 | 3 | 4 | 3/7 | 1 | 0.600 |
+#
+# The $F_1$ score is maximal at $t = 0.4$, with $F_1 = 0.75$ (precision 0.6, recall 1). Note that the tied scores force us to flag both examples at 0.4 or neither.
+#
+# **Solution 5.4 — The cost-optimal threshold.**
+#
+# (a) Predicting positive costs, in expectation, $(1 - \hat p)\,c_{FP}$ (we are wrong when $y = 0$); predicting negative costs $\hat p\,c_{FN}$. We predict positive when $(1-\hat p)\,c_{FP} \le \hat p\,c_{FN}$, that is $c_{FP} \le \hat p\,(c_{FP} + c_{FN})$, which is $\hat p \ge t^\ast = c_{FP}/(c_{FP} + c_{FN})$.
+#
+# (b) $t^\ast = 5/(5 + 200) = \mathbf{0.0244}$: flag a transaction as soon as the estimated probability of fraud exceeds 2.4%.
+#
+# (c) Of 10,000 transactions, 50 are fraudulent and 9,950 are legitimate. TPR 0.90 gives $TP = 45$, $FN = 5$; FPR 0.02 gives $FP = 199$, $TN = 9{,}751$. Precision $= 45/(45 + 199) = \mathbf{0.184}$. The cost is $200 \cdot 5 + 5 \cdot 199 = 1{,}995$, that is **0.1995 per transaction**. "Flag nothing" costs $200 \cdot 50 = 10{,}000$ (1.0 per transaction) and "flag everything" costs $5 \cdot 9{,}950 = 49{,}750$ (4.975 per transaction). The detector cuts the cost by a factor of five although only 18% of its alarms are real: a low precision is perfectly acceptable when a miss costs forty times a false alarm.
+#
+# (d) It does not change: $t^\ast$ depends only on the **ratio** $c_{FN}/c_{FP}$, which here stays at 40. Doubling both costs doubles the total cost but leaves the optimal decision unchanged.
+#
+# **Solution 5.5 — Leave-one-out for least squares without refitting.** Write $\mathbf{A} = \mathbf{X}^\top\mathbf{X}$, so that $\hat{\boldsymbol\beta} = \mathbf{A}^{-1}\mathbf{X}^\top\mathbf{y}$ and $h_{ii} = \mathbf{x}_i^\top\mathbf{A}^{-1}\mathbf{x}_i$.
+#
+# (a) Without example $i$, $\mathbf{X}_{(i)}^\top\mathbf{X}_{(i)} = \mathbf{A} - \mathbf{x}_i\mathbf{x}_i^\top$ and $\mathbf{X}_{(i)}^\top\mathbf{y}_{(i)} = \mathbf{X}^\top\mathbf{y} - \mathbf{x}_i y_i$. By the Sherman–Morrison formula, $(\mathbf{A} - \mathbf{x}_i\mathbf{x}_i^\top)^{-1} = \mathbf{A}^{-1} + \dfrac{\mathbf{A}^{-1}\mathbf{x}_i\mathbf{x}_i^\top\mathbf{A}^{-1}}{1 - h_{ii}}$. Therefore
+# $$
+# \hat{\boldsymbol\beta}_{(i)} = \Big(\mathbf{A}^{-1} + \frac{\mathbf{A}^{-1}\mathbf{x}_i\mathbf{x}_i^\top\mathbf{A}^{-1}}{1 - h_{ii}}\Big)\big(\mathbf{X}^\top\mathbf{y} - \mathbf{x}_i y_i\big)
+# = \hat{\boldsymbol\beta} - \mathbf{A}^{-1}\mathbf{x}_i y_i + \frac{\mathbf{A}^{-1}\mathbf{x}_i\,\hat y_i}{1 - h_{ii}} - \frac{\mathbf{A}^{-1}\mathbf{x}_i\,h_{ii}\,y_i}{1 - h_{ii}},
+# $$
+# using $\mathbf{x}_i^\top\mathbf{A}^{-1}\mathbf{X}^\top\mathbf{y} = \mathbf{x}_i^\top\hat{\boldsymbol\beta} = \hat y_i$ and $\mathbf{x}_i^\top\mathbf{A}^{-1}\mathbf{x}_i = h_{ii}$. Collecting the terms in $y_i$: $-y_i\big(1 + \tfrac{h_{ii}}{1 - h_{ii}}\big) = -\tfrac{y_i}{1 - h_{ii}}$, so
+# $$
+# \hat{\boldsymbol\beta}_{(i)} = \hat{\boldsymbol\beta} - \mathbf{A}^{-1}\mathbf{x}_i\,\frac{y_i - \hat y_i}{1 - h_{ii}} = \hat{\boldsymbol\beta} - \mathbf{A}^{-1}\mathbf{x}_i\,\frac{e_i}{1 - h_{ii}}.
+# $$
+# The prediction for example $i$ from the model that did not see it is $\mathbf{x}_i^\top\hat{\boldsymbol\beta}_{(i)} = \hat y_i - h_{ii}\,\dfrac{e_i}{1 - h_{ii}}$, and the leave-one-out residual is
+# $$
+# y_i - \mathbf{x}_i^\top\hat{\boldsymbol\beta}_{(i)} = e_i + \frac{h_{ii}\,e_i}{1 - h_{ii}} = \frac{e_i}{1 - h_{ii}}. \qquad\square
+# $$
+#
+# (b) The leave-one-out mean squared error is $\dfrac{1}{n}\sum_{i=1}^n \Big(\dfrac{e_i}{1 - h_{ii}}\Big)^2$ (the PRESS statistic divided by $n$): it needs the residuals and the diagonal of the hat matrix of **one** fit on all the data, instead of $n$ fits. (The same trick works for every *linear smoother*, that is for every method whose fitted values are $\hat{\mathbf{y}} = \mathbf{H}\mathbf{y}$ for a matrix $\mathbf{H}$ that does not depend on $\mathbf{y}$, including ridge regression.)
+#
+# (c) The leverages satisfy $0 \le h_{ii} \le 1$ and $\sum_i h_{ii} = d$. An example with $h_{ii}$ close to 1 is far from the others in the input space: the fit passes almost through it, so its ordinary residual $e_i$ is small, but without it the model has nothing to extrapolate from, and the leave-one-out residual $e_i/(1 - h_{ii})$ can be large. High-leverage examples are exactly where the training residuals are most misleading about the prediction error.
+#
+# ### Python exercises
+
+# %%
+def solution_5_6():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import cross_val_score
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    def stratified_kfold_splits(y, K, seed):
+        """Shuffle the indices of each class and deal them out to the K folds in turn."""
+        rng = np.random.default_rng(seed)
+        folds = [[] for _ in range(K)]
+        for cls in np.unique(y):
+            idx = rng.permutation(np.flatnonzero(y == cls))
+            for j, chunk in enumerate(np.array_split(idx, K)):
+                folds[j].extend(chunk.tolist())
+        folds = [np.array(sorted(f)) for f in folds]
+        return [(np.setdiff1d(np.arange(len(y)), held), held) for held in folds]
+
+    def shuffled_kfold_splits(n, K, seed):
+        folds = np.array_split(np.random.default_rng(seed).permutation(n), K)
+        return [(np.setdiff1d(np.arange(n), held), held) for held in folds]
+
+    X, y = load_breast_cancer(return_X_y=True)
+    y = 1 - y                                               # 1 = malignant
+    rng = np.random.default_rng(SEED)
+    keep = np.r_[np.flatnonzero(y == 0), rng.choice(np.flatnonzero(y == 1), size=20, replace=False)]
+    Xs, ys = X[keep], y[keep]
+    print(f"imbalanced data set: {len(ys)} patients, {int(ys.sum())} malignant ({ys.mean():.3f})")
+
+    # (b) the class counts in each fold differ by at most one from the ideal proportion
+    worst = 0
+    for seed in range(50):
+        for _, held in stratified_kfold_splits(ys, 5, seed):
+            for cls in (0, 1):
+                ideal = np.mean(ys == cls) * len(held)
+                worst = max(worst, abs(np.sum(ys[held] == cls) - ideal))
+    print(f"largest deviation from the ideal class count in a fold, over 50 seeds: {worst:.2f} examples")
+
+    # (c) plain shuffled folds against stratified folds
+    model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5))
+    out = {}
+    for name, make in {"shuffled": lambda s: shuffled_kfold_splits(len(ys), 5, s),
+                       "stratified": lambda s: stratified_kfold_splits(ys, 5, s)}.items():
+        acc, min_pos = [], []
+        for seed in range(50):
+            splits = make(seed)
+            acc.append(cross_val_score(model, Xs, ys, cv=splits).mean())
+            min_pos.append(min(int(ys[held].sum()) for _, held in splits))
+        out[name] = {"mean accuracy": np.mean(acc), "sd across seeds": np.std(acc, ddof=1),
+                     "fewest malignant in a fold": int(np.min(min_pos)), "mean of that minimum": np.mean(min_pos)}
+    table = pd.DataFrame(out).T.astype({"fewest malignant in a fold": int})
+    print(table.round(4).to_string())
+
+
+solution_5_6()
+
+# %% [markdown]
+# **(b)** In all 50 stratified 5-fold splits (250 folds) the number of examples of each class in a fold is within 0.03 of the ideal proportion. With 20 malignant examples and 5 folds every fold receives exactly 4 of them, and the 357 benign ones are dealt out as 72, 72, 71, 71, 71, so the deviation from the ideal count is only due to the fact that the folds themselves have 75 or 76 examples.
+#
+# **(c)** Stratification does **not** change the accuracy estimate: the mean accuracy is 0.978 for shuffled folds and 0.979 for stratified folds, and the standard deviation across seeds is 0.0022 against 0.0026, a difference that 50 seeds cannot resolve. What it changes is the **composition of the folds**. With shuffled folds there is, over the 50 seeds, at least one split in which a fold contains no malignant tumor at all (the smallest number found is 0), and the smallest fold contains on average 1.86 malignant examples; with stratified folds the smallest fold always contains 4. On a data set with 5% positives the accuracy hides the problem, because it is dominated by the benign class, but any metric that is computed *per fold* and involves the positive class (recall, precision, AUC) is undefined for a fold without positives and extremely noisy for a fold with one or two. Stratification costs nothing and removes the problem, which is why it is the default for classification in scikit-learn.
+
+# %%
+def solution_5_7():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import KFold, cross_val_score
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_breast_cancer(return_X_y=True)
+    model = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
+    Ks = [2, 5, 10, 20]
+    rng = np.random.default_rng(SEED)
+    rows = []
+    for rep in range(100):
+        perm = rng.permutation(len(y))
+        s, t = perm[:100], perm[100:]
+        fitted = model.fit(X[s], y[s])
+        row = {"test": fitted.score(X[t], y[t])}
+        for K in Ks:
+            row[f"cv{K}"] = cross_val_score(model, X[s], y[s], cv=KFold(K, shuffle=True, random_state=rep)).mean()
+        rows.append(row)
+    runs = pd.DataFrame(rows)
+    table = pd.DataFrame({"K": Ks, "training size": [100 - 100 // K for K in Ks],
+                          "bias (CV - test)": [(runs[f"cv{K}"] - runs["test"]).mean() for K in Ks],
+                          "sd of (CV - test)": [(runs[f"cv{K}"] - runs["test"]).std() for K in Ks]})
+    print(f"mean accuracy of the model fitted on 100 patients: {runs['test'].mean():.4f}")
+    print(table.round(4).to_string(index=False))
+
+    lc = {}
+    for m in (25, 50, 75, 100, 200):
+        accs = []
+        for _ in range(100):
+            perm = rng.permutation(len(y))
+            accs.append(model.fit(X[perm[:m]], y[perm[:m]]).score(X[perm[m:]], y[perm[m:]]))
+        lc[m] = np.mean(accs)
+    print("learning curve of the logistic regression (mean accuracy by training size):", ", ".join(f"{m}: {v:.4f}" for m, v in lc.items()))
+
+
+solution_5_7()
+
+# %% [markdown]
+# The model fitted on 100 patients has a mean accuracy of 0.9651 on the other 469. The CV estimates are again slightly pessimistic, but the bias is **much smaller** than for the 3-NN on Digits of Section 5.3.2: 1.04 points for $K = 2$, 0.37 for $K = 5$, 0.21 for $K = 10$ and 0.19 for $K = 20$, against 11, 3, 1.4 and 0.8 points. The standard deviation of $\mathrm{CV}_K - $ test accuracy is 0.028, 0.026, 0.025 and 0.024: it hardly depends on $K$, and it is smaller than the 0.042 of Digits (accuracies close to 1 leave less room for variation).
+#
+# The reason is the **learning curve** (last line of the output). The accuracy of the logistic regression grows from 0.9535 with 50 training patients to 0.9647 with 100: halving the training set costs 1.1 points, which is the bias that we measure for $K = 2$ (1.04). For the larger values of $K$ the training size is 80, 90 and 95 and the curve between 75 and 100 patients is almost flat (0.9615 and 0.9647), which accounts for biases of a few tenths of a point. A linear model with 30 features is already close to its best on 100 patients of this easy problem, while a 10-class nearest-neighbor classifier with 100 images is still far from it. The lesson is that the choice of $K$ should be made by looking at the learning curve of **the model at hand**: for a model that saturates early, $K = 5$ is as good as $K = 20$; for a data-hungry model, larger $K$ is worth its cost.
+
+# %%
+def solution_5_8():
+    from sklearn.base import clone
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_breast_cancer(return_X_y=True)
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.25, random_state=0, stratify=y)     # a fresh split
+    pipe = Pipeline([("scale", StandardScaler()), ("knn", KNeighborsClassifier())])
+    grid = {"knn__n_neighbors": list(range(1, 31, 2)), "knn__weights": ["uniform", "distance"], "knn__p": [1, 2]}
+    gs = GridSearchCV(pipe, grid, cv=StratifiedKFold(5, shuffle=True, random_state=SEED)).fit(X_tr, y_tr)
+    cv_scores = np.array(gs.cv_results_["mean_test_score"])
+    test_scores = np.array([clone(pipe).set_params(**p).fit(X_tr, y_tr).score(X_te, y_te) for p in gs.cv_results_["params"]])
+    print(f"{len(cv_scores)} configurations; CV accuracy ranges from {cv_scores.min():.3f} to {cv_scores.max():.3f}, "
+          f"test accuracy from {test_scores.min():.3f} to {test_scores.max():.3f}")
+
+    rng = np.random.default_rng(SEED)
+    budgets = [2, 4, 8, 15, 30, 60]
+    rows = []
+    for B in budgets:
+        picked_cv, picked_test = [], []
+        for _ in range(500):
+            idx = rng.choice(len(cv_scores), size=B, replace=False)
+            best = idx[np.argmax(cv_scores[idx])]
+            picked_cv.append(cv_scores[best]); picked_test.append(test_scores[best])
+        rows.append({"budget B": B, "CV accuracy of the selected": np.mean(picked_cv), "test accuracy of the selected": np.mean(picked_test)})
+    table = pd.DataFrame(rows)
+    table["optimism"] = table["CV accuracy of the selected"] - table["test accuracy of the selected"]
+    print(table.round(4).to_string(index=False))
+
+    fig, ax = plt.subplots(figsize=(6.6, 4.2))
+    ax.plot(table["budget B"], table["CV accuracy of the selected"], color=VERMILION, marker="o", linewidth=2, label="CV accuracy of the selected configuration")
+    ax.plot(table["budget B"], table["test accuracy of the selected"], color=BLUE, marker="s", linestyle="--", linewidth=2, label="test accuracy of the selected configuration")
+    ax.set_xscale("log")
+    ax.set_xticks(budgets, labels=[str(b) for b in budgets])
+    ax.minorticks_off()
+    ax.set(xlabel="budget $B$ (configurations evaluated)", ylabel="accuracy", title="Random search on the $k$-NN grid")
+    ax.legend(frameon=False, fontsize=9.5)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_5_8()
+
+# %% [markdown]
+# The 60 configurations are all reasonable: their CV accuracies range from 0.948 to 0.972 and their test accuracies from 0.944 to 0.958, and the test set has 143 patients, so one patient is 0.7 points. The table and the figure show what a random search with budget $B$ obtains. Most of the gain comes from the first evaluations: the test accuracy of the selected configuration rises from 0.9526 at $B = 2$ to 0.9554 at $B = 8$ and to 0.9566 at $B = 15$, and then only to 0.9580 at $B = 60$. From $B = 15$ to $B = 60$ the gain is 0.0014, about **one fifth of one patient**, while the cost is four times larger: the search stops paying at a budget of about 8 to 15 configurations, that is, 13% to 25% of the grid. This is the argument of Bergstra and Bengio (2012) in miniature: when many configurations are almost equivalent, a few random draws are almost as good as the full grid.
+#
+# The difference between the two curves is the optimism of the selection. It is 1.1 points at $B = 2$, 1.4 points from $B = 8$ on, and **0.0139 at $B = 60$**: the CV accuracy of the winner of the whole grid, 0.9719, is 1.4 points higher than the accuracy that the same configuration achieves on new patients. Unlike the coin-flip experiment of Exercise 5.9, the optimism does not keep growing with the number of candidates, because the configurations are not independent: neighboring values of $k$, or the same $k$ with the two distances, give nearly the same predictions and nearly the same scores, so evaluating 60 of them is like evaluating a handful of really different ones. This is why, with real hyperparameter grids, the optimism is moderate; and it is why the final number to report is the one measured on the test set and not the best CV score.
+
+# %%
+def solution_5_9():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import KFold, cross_val_score
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, _ = load_breast_cancer(return_X_y=True)
+    rng = np.random.default_rng(SEED)
+
+    def best_cv_optimism(n, ms, m_max, n_rep=40):
+        """Mean over repetitions of (best CV accuracy among the first m candidates) - 0.5, for each m in ms."""
+        out = {m: [] for m in ms}
+        for rep in range(n_rep):
+            idx = rng.choice(len(X), size=n, replace=False)
+            y_coin = rng.integers(0, 2, size=n)                                # labels unrelated to the features
+            scores = []
+            for _ in range(m_max):
+                cols = rng.choice(X.shape[1], size=5, replace=False)
+                model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5))
+                scores.append(cross_val_score(model, X[idx][:, cols], y_coin, cv=KFold(5, shuffle=True, random_state=rep)).mean())
+            for m in ms:
+                out[m].append(max(scores[:m]) - 0.5)
+        return {m: np.mean(v) for m, v in out.items()}
+
+    ms = [1, 4, 16, 64]
+    res_m = best_cv_optimism(60, ms, 64)
+    print("(a) n = 60")
+    print(pd.DataFrame({"m": ms, "mean optimism": [res_m[m] for m in ms], "bound sqrt(ln m/(2n))": [np.sqrt(np.log(m) / 120) for m in ms]}).round(4).to_string(index=False))
+    ns = [30, 60, 120, 240]
+    res_n = {n: best_cv_optimism(n, [16], 16)[16] for n in ns}
+    print("(b) m = 16")
+    print(pd.DataFrame({"n": ns, "mean optimism": [res_n[n] for n in ns], "bound sqrt(ln m/(2n))": [np.sqrt(np.log(16) / (2 * n)) for n in ns]}).round(4).to_string(index=False))
+
+
+solution_5_9()
+
+# %% [markdown]
+# **(a)** For $n = 60$ the mean optimism (best CV accuracy minus the true accuracy 0.5) is 0.019 for $m = 1$, 0.062 for $m = 4$, 0.111 for $m = 16$ and 0.139 for $m = 64$. The value for $m = 1$ should be zero, because a single candidate is not selected: 0.019 is the Monte Carlo error of 40 repetitions (the standard deviation of one CV accuracy on 60 coin flips is about $0.5/\sqrt{60} = 0.065$, so the mean of 40 has an error of about 0.01). **(b)** For $m = 16$ the optimism is 0.124, 0.108, 0.091 and 0.065 for $n = 30, 60, 120, 240$; the value 0.108 at $n = 60$ differs from the 0.111 of part (a) for the same reason, since the two runs use different random draws.
+#
+# **(c)** The bound $\sqrt{\ln m/(2n)}$ is 0, 0.108, 0.152 and 0.186 for the $m$ of part (a), and 0.215, 0.152, 0.108 and 0.076 for the $n$ of part (b): the measured optimism is **below the bound in every row**, as it must be. The qualitative shape is the predicted one: the optimism increases with the number of candidates, with diminishing increments (it grows by 0.049 from $m = 4$ to $m = 16$ but only by 0.028 from $m = 16$ to $m = 64$, as a function of $\ln m$ should), and it decreases when $n$ grows. The quantitative rate is not reproduced exactly: multiplying $n$ by 8 divides the bound by $\sqrt 8 = 2.8$, but the measured optimism only by 1.9, so the ratio of the measurement to the bound goes from 0.58 at $n = 30$ to 0.86 at $n = 240$. Two cautions are in order. The bound is derived for the error on a single validation set of $n$ examples, while here the estimate is a 5-fold CV accuracy on the same $n$ examples, so the comparison is a heuristic one; and it is a worst-case guarantee for any $m$ candidates, not an asymptotic equality, while our candidates share features and are therefore correlated. The practical message is the one of Section 5.2.3: with few examples, tuning a handful of candidates is enough to produce a CV accuracy that is more than **10 points** above the truth on labels that contain no signal at all.
+
+# %%
+def solution_5_10():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import StratifiedKFold, cross_val_predict, train_test_split
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_breast_cancer(return_X_y=True)
+    y = 1 - y                                                 # 1 = malignant
+    ts = np.linspace(0.005, 0.995, 199)
+    ratios = [1, 5, 10, 50]
+
+    def mean_cost(y_true, p, t, c_fn):
+        flagged = p >= t
+        return (np.sum(flagged & (y_true == 0)) + c_fn * np.sum(~flagged & (y_true == 1))) / len(y_true)
+
+    records = []
+    for split in range(50):
+        X1, X2, y1, y2 = train_test_split(X, y, test_size=0.3, random_state=split, stratify=y)
+        model = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
+        oof = cross_val_predict(model, X1, y1, cv=StratifiedKFold(10, shuffle=True, random_state=split), method="predict_proba")[:, 1]
+        p_test = model.fit(X1, y1).predict_proba(X2)[:, 1]
+        for c_fn in ratios:
+            t_data = ts[np.argmin([mean_cost(y1, oof, t, c_fn) for t in ts])]
+            t_star = 1 / (1 + c_fn)
+            records.append({"ratio": c_fn, "t_data": t_data, "t_star": t_star,
+                            "cost 0.5": mean_cost(y2, p_test, 0.5, c_fn),
+                            "cost theory": mean_cost(y2, p_test, t_star, c_fn),
+                            "cost out-of-fold": mean_cost(y2, p_test, t_data, c_fn)})
+    df = pd.DataFrame(records)
+    summary = df.groupby("ratio").agg(**{"t* (theory)": ("t_star", "first"), "mean OOF threshold": ("t_data", "mean"), "sd OOF threshold": ("t_data", "std"),
+                                          "cost, t = 0.5": ("cost 0.5", "mean"), "sd (0.5)": ("cost 0.5", "std"),
+                                          "cost, t*": ("cost theory", "mean"), "sd (t*)": ("cost theory", "std"),
+                                          "cost, OOF": ("cost out-of-fold", "mean"), "sd (OOF)": ("cost out-of-fold", "std")})
+    print(summary.round(3).to_string())
+
+
+solution_5_10()
+
+# %% [markdown]
+# The table gives, for each ratio $c_{FN}/c_{FP}$, the theoretical threshold $t^\ast = 1/(1 + c_{FN}/c_{FP})$, the mean and standard deviation of the threshold chosen from the out-of-fold scores, and the mean cost per patient (with its standard deviation over the 50 splits) of the three rules on the test part.
+#
+# For $c_{FN}/c_{FP} = 1$ the three rules coincide in practice ($t^\ast = 0.5$ is the conventional threshold, and the data-driven rule is 0.003 worse, the price of estimating a threshold that is already known). For a ratio of 5 the theory and the out-of-fold rule are equivalent (0.092 and 0.090) and both are a little better than 0.5 (0.101), a difference smaller than the spread across splits. As the ratio grows the conventional threshold becomes costly and the **theory threshold is the best rule**: at ratio 10 the costs are 0.196 for $t = 0.5$, 0.156 for the out-of-fold optimum and 0.136 for $t^\ast$; at ratio 50 they are 0.954, 0.331 and 0.256, so that keeping $t = 0.5$ costs 3.7 times as much as using $t^\ast$.
+#
+# The out-of-fold threshold is **highly variable**: its standard deviation is 0.074, 0.110 and 0.126 for the ratios 1, 5 and 10, as large as the threshold itself at ratio 10 (mean 0.162, against $t^\ast = 0.091$). The reason is visible in Figure 5.11(b): the cost curve of the logistic regression is nearly flat over a wide range of thresholds, with steps of one patient, so the minimum of a noisy curve can fall anywhere on the plateau, and the cost on new patients depends on where it fell (the standard deviation of the cost of this rule is 0.070 at ratio 10 and 0.225 at ratio 50, against 0.055 and 0.144 for $t^\ast$). The theory threshold has no such noise, but it is valid only if the scores are calibrated probabilities, which is the case for the logistic regression of this data set (Figure 5.11(a)); for a classifier with poorly calibrated scores, such as a $k$-NN with few neighbors or a decision tree, the threshold would have to be chosen from the data, after calibrating the scores, preferably with a smoother criterion than the minimum of a staircase.

@@ -70,6 +70,22 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $\sigma^2$ | Variance of the noise, $y = f(\mathbf{x}) + \varepsilon$ |
 | $\text{bias}^2,\ \text{variance}$ | Squared systematic error and sensitivity to the training set of a prediction $\hat f_S(\mathbf{x}_0)$: $\mathbb{E}[(y_0-\hat f_S(\mathbf{x}_0))^2]=\sigma^2+\text{bias}^2+\text{variance}$ |
 
+## Model evaluation (Chapter 5)
+
+| Symbol | Meaning |
+|---|---|
+| $K,\ \kappa(i)$ | Number of folds of cross-validation; the index of the fold that contains example $i$ |
+| $\mathrm{CV}_K$ | The $K$-fold cross-validation estimate of the error: the average loss of each example under the model fitted without its fold |
+| $n_{\mathrm{val}},\ m$ | Size of a validation set; number of candidate models or configurations among which the best is selected |
+| $\mathrm{TP},\ \mathrm{FP},\ \mathrm{FN},\ \mathrm{TN}$ | Entries of the confusion matrix: true positives, false positives, false negatives, true negatives |
+| $\text{TPR}(t),\ \text{FPR}(t)$ | True-positive rate (recall) and false-positive rate of the rule "predict positive if the score is at least $t$" |
+| $S^+,\ S^-$ | Score of a randomly chosen positive and of a randomly chosen negative example |
+| $\text{AUC},\ \text{AP}$ | Area under the ROC curve; average precision (area under the precision–recall curve) |
+| $F_\beta$ | Weighted harmonic mean of precision and recall; $\beta > 1$ gives more weight to recall |
+| $\pi$ | Prevalence: the fraction of positive examples in the population |
+| $c_{FP},\ c_{FN},\ t^\ast$ | Costs of a false positive and of a false negative; the cost-optimal threshold $t^\ast = c_{FP}/(c_{FP}+c_{FN})$ for calibrated probabilities |
+| $h_{ii}$ | Leverage of example $i$ in linear regression (diagonal of the hat matrix); the leave-one-out residual is $e_i/(1-h_{ii})$ |
+
 ## Probability
 
 | Symbol | Meaning |
