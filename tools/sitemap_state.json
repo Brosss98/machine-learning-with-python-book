@@ -1,62 +1,66 @@
 {
  "https://brosss98.github.io/machine-learning-with-python-book/": {
-  "lastmod": "2026-11-24",
-  "sha256": "eae07100c3e85520e412436111377ceb2b5776936a13fb498880d193b3514363"
+  "lastmod": "2026-11-25",
+  "sha256": "7ecf75d53dd96d70e95c398e7cd1fb8ca78afd890e60de16f57aad1726a1de73"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/appendix-c-solutions/": {
-  "lastmod": "2026-11-24",
-  "sha256": "ce025e3dc8388680044149d768f8b70d5a4b51312edd7c5264a60547b87be367"
+  "lastmod": "2026-11-25",
+  "sha256": "a1063061d21eb9e99cd55e173d27202fefe3b04614c738a739d53b771f1ec9f0"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch01-setup-guide/": {
-  "lastmod": "2026-11-24",
-  "sha256": "d3043b06111c78342e15e6cd387ec3ce386571c8df28149d38e46807ba7c837c"
+  "lastmod": "2026-11-25",
+  "sha256": "92cd0abe2a015cba242eb4993ef5bc5e3d6fbde0898872e2b16989898d429830"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch01-what-is-machine-learning/": {
-  "lastmod": "2026-11-24",
-  "sha256": "615df327306dffe973c81945f0622bd86004ea8a7f7d4d79f523bc93d9e4421d"
+  "lastmod": "2026-11-25",
+  "sha256": "ddb64a090917eb662b7fe99e75613f9249fa2475fd7986211b1c869ad55fee23"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch02-python-math-toolkit/": {
-  "lastmod": "2026-11-24",
-  "sha256": "6c9863724f305fd0af218612d7c31511327946db26cfbd4fd3f998fa6608f1f6"
+  "lastmod": "2026-11-25",
+  "sha256": "2cfc9a95bbc6ea6d868a6728081409bb3488b95bc66eca6d5a33e7aebcb973f8"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch03-statistical-learning-theory/": {
-  "lastmod": "2026-11-24",
-  "sha256": "94989487a6d227694669ddfb3a62774f5c61c1bc47d7cdfcb4a8ee929c9cc83a"
+  "lastmod": "2026-11-25",
+  "sha256": "62a9fd69e19949e1efef5899cb35c9589f2330d026cec17cb25fb06833a9c44f"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch04-local-methods-knn-bias-variance/": {
-  "lastmod": "2026-11-24",
-  "sha256": "520dd730583b0d605d752a39460955ceff17037f7b3a035eed8681d1b33a6aa5"
+  "lastmod": "2026-11-25",
+  "sha256": "faff3b449243bbbeb4211974de5c030092a0e13cc559f37c1c7360a138b204b5"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch05-model-evaluation-cv-tuning/": {
-  "lastmod": "2026-11-24",
-  "sha256": "7abc2fd743078f59ce0c4497eefe080655011161ca6fec80eb972858f2c9dfca"
+  "lastmod": "2026-11-25",
+  "sha256": "b270be9378f5d9c131f693992b9693f0e9ee85d468bcfc639d34a20846589727"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch06-linear-models-regularization/": {
-  "lastmod": "2026-11-24",
-  "sha256": "f454b483ac2d2ecbcd76c35841e7fc7990e24589a076f6ca56f0d8b370c2b21a"
+  "lastmod": "2026-11-25",
+  "sha256": "d0df3efed8fd4dfff8117aab22493f932848e0c1285f83f892ffb52f70a53df7"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch07-optimization-gd-sgd/": {
-  "lastmod": "2026-11-24",
-  "sha256": "bb07718c0a7f11120cc53543a699c0c7485b37be819851bf46bad481f7099717"
+  "lastmod": "2026-11-25",
+  "sha256": "a6c65e6d40f2013380dc97690d468e85165780cd2a1dbb3fd705ff60b23677c4"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/ch08-support-vector-machines/": {
-  "lastmod": "2026-11-24",
-  "sha256": "cb1b33219acaa4a4c7892042b7682767693f59af83fbbd5f1273f3bc097615bf"
+  "lastmod": "2026-11-25",
+  "sha256": "21293965c69065cfa3c610b4e0c53e8cd7f7ce7949736096365aebde33868ea6"
+ },
+ "https://brosss98.github.io/machine-learning-with-python-book/ch09-kernels-representer-theorem/": {
+  "lastmod": "2026-11-25",
+  "sha256": "08ad9422b1b5bc18727e5a1a07c9f20e52e934aedfb1ec9a748b168fc878fcc7"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/copyright/": {
-  "lastmod": "2026-11-24",
-  "sha256": "121be30e1104aadbefb4178891852c5cefebccb75d552e0842fd6d931e517c67"
+  "lastmod": "2026-11-25",
+  "sha256": "ef34e1236215e94913398128d6bc4dfcd6d30d427de63712806e2ca20a3c3106"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/how-to-use/": {
-  "lastmod": "2026-11-24",
-  "sha256": "40c4b5ed4de693860ef26dbe932552c89e388820a99f39e5e475d5b38a19f205"
+  "lastmod": "2026-11-25",
+  "sha256": "e5fec72e32019c4bce03d8664fad058de57fa6140b9bcd6df6b5c9c110473ea5"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/notation/": {
-  "lastmod": "2026-11-24",
-  "sha256": "743640752b0639bc7a6799e1cfc1d1bfb570c639dda550b994cbb1818cda4b00"
+  "lastmod": "2026-11-25",
+  "sha256": "f2a3528a9b08503b45403386d0e6a93f6df456f589dfe34046090c65fd9597ee"
  },
  "https://brosss98.github.io/machine-learning-with-python-book/preface/": {
-  "lastmod": "2026-11-24",
-  "sha256": "ee2ca32b387b91e721bab81fd02a2c34ba7f9c051065d4666763ab5b399b4e09"
+  "lastmod": "2026-11-25",
+  "sha256": "3bc7ea18f18c22482eb05becb2787fb3f63fe5873d48f41383dbb7d3cc21271e"
  }
 }

@@ -2546,3 +2546,240 @@ solution_8_10()
 
 # %% [markdown]
 # Over $20$ random splits the test RMSE is $55.23$ ($\pm 3.21$ across splits) for SVR with $\varepsilon = 50$ and $55.07$ ($\pm 3.42$) for ridge. The paired difference has mean $0.15$ and standard deviation $0.64$, and SVR is better in $8$ of the $20$ splits. The naive paired $t$ statistic is $1.08$, and the corrected resampled statistic of Section 5.5.2, which accounts for the overlap between the training sets, is $0.39$ with $19$ degrees of freedom ($p = 0.70$): **the data do not allow us to conclude anything**, and the difference of $0.15$ is a small fraction of the variation across splits ($3.2$). As in Section 8.8.2, the $\varepsilon$-insensitive loss changes the *sparsity* of the solution but not its accuracy on this problem, and a comparison on a single split (the $53.0$ of the chapter against $53.3$ for ridge) would have been misleading in either direction.
+
+# %% [markdown]
+# ## C.9 Chapter 9
+#
+# ### Manual exercises
+#
+# **Solution 9.1 — Kernel or not?**
+#
+# (a) $(xz)^2 = x^2\cdot z^2$ is the inner product of the one-dimensional features $\phi(x) = x^2$: a kernel. (b) $-(x - z)^2$ is not a kernel: for the points $0$ and $1$ the Gram matrix is $\begin{pmatrix}0&-1\\-1&0\end{pmatrix}$, with the eigenvalues $\pm1$; the negative one violates Theorem 9.1. (c) $\cos(x - z) = \cos x\cos z + \sin x\sin z$ is the inner product of $\boldsymbol\phi(x) = (\cos x, \sin x)$: a kernel. (d) $\max(x, z)$ is not a kernel: for the points $1$ and $2$ the Gram matrix is $\begin{pmatrix}1&2\\2&2\end{pmatrix}$, with determinant $2 - 4 = -2 < 0$, so one eigenvalue is negative. (e) $\min(x, z)$ is a kernel: $\min(x, z) = \int_0^\infty\mathbb{I}[t\le x]\mathbb{I}[t\le z]\,dt$ is the inner product in $L^2(0, \infty)$ of $\phi(x) = \mathbb{I}[\cdot\le x]$; equivalently $\sum_{i,j}c_ic_j\min(x_i, x_j) = \int_0^\infty\big(\sum_ic_i\mathbb{I}[t\le x_i]\big)^2dt\ge 0$.
+#
+# **Solution 9.2 — The feature space of the polynomial kernel.**
+#
+# (a) Expanding, $(\mathbf{x}^\top\mathbf{z} + c)^2 = \sum_ix_i^2z_i^2 + 2\sum_{i<j}x_ix_jz_iz_j + 2c\sum_ix_iz_i + c^2$, which is $\boldsymbol\phi(\mathbf{x})^\top\boldsymbol\phi(\mathbf{z})$ for $\boldsymbol\phi(\mathbf{x}) = \big(x_i^2\ (d),\ \sqrt2\,x_ix_j\ (i < j;\ \tfrac{d(d - 1)}2),\ \sqrt{2c}\,x_i\ (d),\ c\big)$, with $d + \frac{d(d - 1)}2 + d + 1 = \frac{(d + 1)(d + 2)}2$ coordinates. (b) A monomial of degree at most $p$ in $d$ variables is a vector of exponents $(e_1, \dots, e_d)$ with $\sum_le_l\le p$; adding the slack $e_0 = p - \sum_le_l\ge 0$ puts these in one-to-one correspondence with the non-negative integer solutions of $e_0 + e_1 + \dots + e_d = p$, of which there are $\binom{p + d}{d} = \binom{d + p}{p}$ (stars and bars). For $d = 30$: $\binom{32}{2} = 496$, $\binom{33}{3} = 5{,}456$ and $\binom{35}{5} = 324{,}632$ for $p = 2, 3, 5$. (c) $\lVert\boldsymbol\phi(\mathbf{x}) - \boldsymbol\phi(\mathbf{z})\rVert^2 = k(\mathbf{x}, \mathbf{x}) + k(\mathbf{z}, \mathbf{z}) - 2k(\mathbf{x}, \mathbf{z})$. With $c = 1$, $\mathbf{x} = (1, 0)$ and $\mathbf{z} = (1, 1)$: $k(\mathbf{x}, \mathbf{x}) = (1 + 1)^2 = 4$, $k(\mathbf{z}, \mathbf{z}) = (2 + 1)^2 = 9$ and $k(\mathbf{x}, \mathbf{z}) = (1 + 1)^2 = 4$, so the squared distance is $4 + 9 - 8 = 5$ and the cosine of the angle is $k(\mathbf{x}, \mathbf{z})/\sqrt{k(\mathbf{x}, \mathbf{x})k(\mathbf{z}, \mathbf{z})} = 4/6 = \tfrac23$.
+#
+# **Solution 9.3 — Kernel ridge regression by hand, and the leave-one-out shortcut.**
+#
+# (a) $\mathbf{K} + \mathbf{I} = \begin{pmatrix}2&1&1\\1&3&2\\1&2&4\end{pmatrix}$ and $\hat{\boldsymbol\alpha} = (\mathbf{K} + \mathbf{I})^{-1}\mathbf{y} = \frac1{13}(8\cdot 3 - 2\cdot 3 - 5,\ -2\cdot 3 + 7\cdot 3 - 3\cdot 5,\ -3 - 9 + 25) = \frac1{13}(13, 0, 13) = (1, 0, 1)$. Check: $(\mathbf{K} + \mathbf{I})(1, 0, 1)^\top = (3, 3, 5)^\top = \mathbf{y}$. So $\hat f(x) = \min(1, x) + \min(3, x)$, with fitted values $\mathbf{K}\hat{\boldsymbol\alpha} = (2, 3, 4)$ and residuals $(1, 0, 1) = \lambda\hat{\boldsymbol\alpha}$. (b) $\lVert\hat f\rVert^2_{\mathcal{H}} = \hat{\boldsymbol\alpha}^\top\mathbf{K}\hat{\boldsymbol\alpha} = K_{11} + 2K_{13} + K_{33} = 1 + 2 + 3 = 6$. (c) $\mathbf{H}_\lambda = \mathbf{K}(\mathbf{K} + \mathbf{I})^{-1} = \mathbf{I} - (\mathbf{K} + \mathbf{I})^{-1}$, so $(\mathbf{H}_\lambda)_{ii} = 1 - \frac{8}{13}, 1 - \frac7{13}, 1 - \frac5{13} = \frac5{13}, \frac6{13}, \frac8{13}$ and the leave-one-out errors $e_i/(1 - H_{ii})$ are $\frac{1}{8/13} = \frac{13}8 = 1.625$, $\frac0{7/13} = 0$ and $\frac1{5/13} = \frac{13}5 = 2.6$ (the leave-one-out mean squared error is $3.13$). *Check for the first point:* without $x = 1$ the data are $x = 2, 3$ with $y = 3, 5$, the Gram matrix is $\begin{pmatrix}2&2\\2&3\end{pmatrix}$, $\mathbf{K}' + \mathbf{I} = \begin{pmatrix}3&2\\2&4\end{pmatrix}$ with the inverse $\frac18\begin{pmatrix}4&-2\\-2&3\end{pmatrix}$, so $\boldsymbol\alpha' = \frac18(12 - 10,\ -6 + 15) = (\tfrac14, \tfrac98)$ and the prediction at $x = 1$ is $\tfrac14\min(2, 1) + \tfrac98\min(3, 1) = \tfrac{11}8 = 1.375$: the error is $3 - 1.375 = 1.625 = \tfrac{13}8$, as given by the formula.
+#
+# **Solution 9.4 — The two ends of the bandwidth.**
+#
+# (a) By Gershgorin's theorem every eigenvalue of $\mathbf{K}$ lies in a disc centered at a diagonal entry $K_{ii} = 1$ with radius $\sum_{j\ne i}K_{ij}\le(n - 1)e^{-\gamma d_{\min}^2}$, so $\lambda_{\min}\ge 1 - (n - 1)e^{-\gamma d_{\min}^2}$, which is positive as soon as $e^{-\gamma d_{\min}^2} < 1/(n - 1)$, that is $\gamma > \ln(n - 1)/d_{\min}^2$. (b) For $\gamma\to\infty$ every off-diagonal entry tends to $0$ and $\mathbf{K}\to\mathbf{I}$, so $\hat{\boldsymbol\alpha}\to(\mathbf{I} + \lambda\mathbf{I})^{-1}\mathbf{y} = \mathbf{y}/(1 + \lambda)$ and the fitted values $\mathbf{K}\hat{\boldsymbol\alpha}\to\mathbf{y}/(1 + \lambda)$. At a point $\mathbf{x}$ outside the sample $k(\mathbf{x}_i, \mathbf{x}) = e^{-\gamma\lVert\mathbf{x}_i - \mathbf{x}\rVert^2}\to 0$ for every $i$, so $\hat f(\mathbf{x}) = \sum_i\hat\alpha_ik(\mathbf{x}_i, \mathbf{x})\to 0$: after adding back the mean, the prediction is the mean of the training responses. The model has memorized the training set (it even reproduces it up to the factor $1/(1 + \lambda)$) and knows nothing about any other point. (c) The SVM behaves in the same way: for $\gamma\ge 1$ on Breast Cancer the Gram matrix has its eigenvalues between $0.64$ and $1.76$ (Section 9.3.3), every patient is its own support vector ($426$ of $426$), and for a new patient all the kernel values are near $0$, so that the score is the intercept $\hat b$, whose sign is that of the majority class: every test patient is classified benign.
+#
+# **Solution 9.5 — Random Fourier features.**
+#
+# (a) $T = 2\cos^2(wx + b) = 1 + \cos(2wx + 2b)$. For any fixed $w$, $2wx + 2b$ modulo $2\pi$ is uniform on $[0, 2\pi]$ when $b$ is, so $\cos(2wx + 2b)$ has the mean $0$ and the variance $\mathbb{E}\cos^2\theta = \tfrac12$ for $\theta$ uniform. Hence $\mathbb{E}\,T = 1 = k(x, x)$ and $\operatorname{Var}\,T = \tfrac12$. (b) The average of $D$ independent copies has the variance $\frac1{2D}$; a standard deviation of $0.01$ needs $\frac1{2D} = 10^{-4}$, that is $D = 5{,}000$. (c) Chebyshev: $\mathbb{P}(\lvert\bar T - 1\rvert\ge 0.1)\le\frac{1/(2D)}{0.01} = \frac{50}{D}\le 0.05$ for $D\ge 1{,}000$. Hoeffding (Theorem 9.7 (ii), for a single pair): $2e^{-D\cdot 0.01/8}\le 0.05$ for $D\ge 800\ln 40 = 2{,}951$. Hoeffding needs three times more features here, because it uses only the range of $T$ ($[-2, 2]$) and not its variance ($\tfrac12$); in exchange it extends, with a union bound, to all the pairs of a sample with an exponentially small failure probability, which Chebyshev's polynomial tail does not.
+#
+# ### Python exercises
+
+# %%
+def solution_9_6():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.metrics.pairwise import laplacian_kernel, linear_kernel, polynomial_kernel, rbf_kernel, sigmoid_kernel
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    bc = load_breast_cancer()
+    Xtr, _, _, _ = train_test_split(bc.data, bc.target, test_size=0.25, random_state=SEED, stratify=bc.target)
+    Z = StandardScaler().fit_transform(Xtr)[:200]
+    raw = Xtr[:200] / Xtr.max(axis=0)                                    # non-negative features in [0, 1]
+
+    def rel_min_eig(K):
+        ev = np.linalg.eigvalsh((K + K.T) / 2)
+        return ev.min() / ev.max(), int(np.sum(ev < -1e-10 * ev.max()))
+
+    cos = (Z @ Z.T) / np.outer(np.linalg.norm(Z, axis=1), np.linalg.norm(Z, axis=1))
+    hist = np.array([[np.minimum(a, b).sum() for b in raw] for a in raw])
+    cands = {"linear": linear_kernel(Z), "polynomial (x.z + 1)^2": polynomial_kernel(Z, degree=2, gamma=1, coef0=1),
+             "Gaussian (gamma = 0.01)": rbf_kernel(Z, gamma=0.01), "Laplacian (gamma = 0.01)": laplacian_kernel(Z, gamma=0.01),
+             "cosine similarity": cos, "histogram intersection (raw / max)": hist,
+             "tanh(0.01 x.z - 1)": sigmoid_kernel(Z, gamma=0.01, coef0=-1), "tanh(0.01 x.z)": sigmoid_kernel(Z, gamma=0.01, coef0=0),
+             "tanh(0.01 x.z + 1)": sigmoid_kernel(Z, gamma=0.01, coef0=1)}
+    rows = []
+    for name, K in cands.items():
+        r, neg = rel_min_eig(K)
+        rows.append({"function": name, "smallest / largest eigenvalue": r, "negative eigenvalues": neg, "kernel?": "yes" if neg == 0 else "NO"})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.2e}"))
+
+
+solution_9_6()
+
+# %% [markdown]
+# The linear, polynomial, Gaussian and Laplacian kernels, the cosine similarity and the histogram intersection are positive semidefinite: the smallest eigenvalue relative to the largest is at the level of rounding errors ($\lvert\cdot\rvert\le 2\cdot 10^{-16}$) or positive, with no negative eigenvalue beyond the tolerance. The three sigmoid functions are not kernels: $\tanh(0.01\,\mathbf{x}^\top\mathbf{z} - 1)$ has $13$ negative eigenvalues among $200$ (the smallest is $-10.8$ times the largest, an enormous violation), $\tanh(0.01\,\mathbf{x}^\top\mathbf{z})$ has $161$ and $\tanh(0.01\,\mathbf{x}^\top\mathbf{z} + 1)$ has $110$ (with relative smallest eigenvalues of only $-3\cdot 10^{-2}$ and $-8\cdot 10^{-3}$). The size of the violation is not the point: a single negative eigenvalue is enough to refute a kernel, and the sigmoid becomes "nearly" positive semidefinite only when its scale makes it nearly linear.
+
+# %%
+def solution_9_7():
+    from sklearn.datasets import load_diabetes
+    from sklearn.kernel_ridge import KernelRidge
+    from sklearn.metrics.pairwise import laplacian_kernel, rbf_kernel
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    d = load_diabetes()
+    Xtr, Xte, ytr, yte = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    sc = StandardScaler().fit(Xtr)
+    Z, Zt = sc.transform(Xtr), sc.transform(Xte)
+    ym = ytr.mean()
+    yc = ytr - ym
+
+    def loo_grid(K, yc, lams):
+        mu, U = np.linalg.eigh(K)
+        uy = U.T @ yc
+        out = []
+        for lam in lams:
+            sh = mu / (mu + lam)
+            resid = yc - U @ (sh * uy)
+            h = (U**2) @ sh
+            out.append(np.sqrt(np.mean((resid / (1 - h)) ** 2)))
+        return np.array(out)
+
+    lams = 10.0 ** np.arange(-3, 4, 0.5)
+    rows = []
+    for kname, kern, gammas in [("Gaussian", rbf_kernel, [0.001, 0.003, 0.01, 0.03, 0.1]), ("Laplacian", laplacian_kernel, [0.0003, 0.001, 0.003, 0.01, 0.03])]:
+        for g in gammas:
+            K = kern(Z, gamma=g)
+            loo = loo_grid(K, yc, lams)
+            j = int(np.argmin(loo))
+            mu = np.linalg.eigvalsh(K)
+            alpha = np.linalg.solve(K + lams[j] * np.eye(len(yc)), yc)
+            pred = kern(Zt, Z, gamma=g) @ alpha + ym
+            skl = KernelRidge(alpha=lams[j], kernel="precomputed").fit(K, yc).predict(kern(Zt, Z, gamma=g)) + ym
+            rows.append({"kernel": kname, "gamma": g, "lambda": lams[j], "LOO RMSE": loo[j], "df": np.sum(mu / (mu + lams[j])),
+                         "test RMSE": np.sqrt(np.mean((pred - yte) ** 2)), "max |ours - sklearn|": np.abs(pred - skl).max()})
+    df = pd.DataFrame(rows)
+    print(df.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    for kname in ["Gaussian", "Laplacian"]:
+        b = df[df["kernel"] == kname].sort_values("LOO RMSE").iloc[0]
+        print(f"best {kname}: gamma = {b['gamma']:g}, lambda = {b['lambda']:.3g}, LOO RMSE {b['LOO RMSE']:.2f}, df {b['df']:.1f}, test RMSE {b['test RMSE']:.2f}")
+
+
+solution_9_7()
+
+# %% [markdown]
+# Our kernel ridge regression agrees with `KernelRidge` of scikit-learn to $10^{-10}$ in all cases. The best Gaussian model by the leave-one-out error has $\gamma = 0.01$, $\lambda = 0.32$, a leave-one-out RMSE of $55.51$, $18.7$ degrees of freedom and a test RMSE of $51.66$; the best Laplacian model has $\gamma = 0.001$, $\lambda = 0.032$, a leave-one-out RMSE of $55.88$ (slightly worse), $34.3$ degrees of freedom and a test RMSE of $51.44$ (slightly better). The two differences, $0.4$ in one direction and $0.2$ in the other, are far below what $331$ or $111$ patients resolve: the two kernels are indistinguishable on this problem. They do differ in flexibility: the Laplacian kernel produces rougher functions, and needs about $34$ effective parameters to reach the same leave-one-out error that the Gaussian reaches with $19$, and ridge regression with $10$ (Section 9.5.2).
+
+# %%
+def solution_9_8():
+    from sklearn.datasets import load_wine
+    from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVC
+
+    wine = load_wine()
+    Xtr, Xte, ytr, yte = train_test_split(wine.data, wine.target, test_size=0.25, random_state=SEED, stratify=wine.target)
+    sd = pd.Series(Xtr.std(axis=0), index=wine.feature_names)
+    print(f"{len(ytr)} training wines, {len(yte)} test wines; standard deviations of the features: from {sd.min():.3g} ({sd.idxmin()}) to {sd.max():.3g} ({sd.idxmax()})")
+    std = StandardScaler().fit(Xtr)
+    versions = {"raw": (Xtr, Xte), "standardized": (std.transform(Xtr), std.transform(Xte)), "divided by the maximum": (Xtr / Xtr.max(axis=0), Xte / Xtr.max(axis=0))}
+    C_grid, g_grid = 10.0 ** np.arange(-2, 4), 10.0 ** np.arange(-9, 1.01, 1)
+    skf = StratifiedKFold(5, shuffle=True, random_state=SEED)
+    maps, rows = {}, []
+    for name, (A, At) in versions.items():
+        gs = GridSearchCV(SVC(kernel="rbf", tol=1e-4), {"C": C_grid, "gamma": g_grid}, cv=skf, scoring="accuracy").fit(A, ytr)
+        maps[name] = gs.cv_results_["mean_test_score"].reshape(len(C_grid), len(g_grid))
+        rows.append({"features": name, "C": gs.best_params_["C"], "gamma": gs.best_params_["gamma"], "5-fold accuracy": gs.best_score_, "test accuracy": gs.score(At, yte),
+                     "support vectors": len(gs.best_estimator_.support_), "cells with accuracy >= 0.9": int((maps[name] >= 0.9).sum())})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    fig, axes = plt.subplots(1, 3, figsize=(12.6, 3.9), sharey=True)
+    for ax, (name, m) in zip(axes, maps.items()):
+        im = ax.imshow(m, origin="lower", cmap="Blues", vmin=0.3, vmax=1.0, aspect="auto")
+        ax.set_xticks(range(0, len(g_grid), 2)); ax.set_xticklabels([f"$10^{{{int(np.log10(g_grid[i]))}}}$" for i in range(0, len(g_grid), 2)])
+        ax.set_yticks(range(len(C_grid))); ax.set_yticklabels([f"$10^{{{int(np.log10(c))}}}$" for c in C_grid])
+        ax.set(xlabel=r"$\gamma$", title=name); ax.grid(False)
+    axes[0].set_ylabel("$C$")
+    fig.colorbar(im, ax=axes, label="5-fold accuracy", shrink=0.9)
+    plt.show()
+
+
+solution_9_8()
+
+# %% [markdown]
+# The standard deviations of the $13$ features range from $0.12$ (`nonflavanoid_phenols`) to $304$ (`proline`), and the next one, magnesium, is around $14$: in raw units the squared distance between two wines is dominated by the proline and, much less, by the magnesium, and the Gaussian kernel is essentially a kernel on these two features. The consequence is visible in the first map of the figure: the best $5$-fold accuracy on the raw features is only $0.880$ (for $C = 1000$ and $\gamma = 10^{-5}$), and *no* cell of the grid reaches $0.9$ (the test accuracy of that pair, $0.956$, is better than its cross-validation accuracy, which with $45$ test wines is a matter of luck). With the standardized features the best $5$-fold accuracy is $0.993$ ($C = 1$, $\gamma = 0.01$), $15$ cells of the grid reach $0.9$, and the test accuracy is $1.000$ ($73$ support vectors); with the features divided by their maximum it is $0.985$ ($C = 1$, $\gamma = 10$, a larger $\gamma$ because the features are in $[0, 1]$), $19$ cells reach $0.9$, and the test accuracy is $0.978$. The two sensible scalings shift the good region along the $\gamma$ axis by three orders of magnitude, which is why $\gamma$ cannot be chosen without looking at the scale, and the raw features make the problem hard for a reason that has nothing to do with the data: the kernel is sensitive to units.
+
+# %%
+def solution_9_9():
+    from sklearn.datasets import load_digits
+    from sklearn.kernel_approximation import Nystroem, RBFSampler
+    from sklearn.metrics.pairwise import rbf_kernel
+    from sklearn.model_selection import train_test_split
+    from sklearn.svm import SVC, LinearSVC
+
+    dg = load_digits()
+    Xtr, Xte, ytr, yte = train_test_split(dg.data, dg.target, test_size=0.25, random_state=SEED, stratify=dg.target)
+    A, At = Xtr / 16, Xte / 16
+    sub = np.arange(300)
+    sizes = [25, 50, 100, 200, 400, 800]
+    rows = []
+    for g in [0.03, 0.1, 0.316]:
+        exact = SVC(kernel="rbf", gamma=g, C=10, tol=1e-4).fit(A, ytr).score(At, yte)
+        K_sub = rbf_kernel(A[sub], gamma=g)
+        for m in sizes:
+            for method in ["Nystroem", "random Fourier features"]:
+                feat = (Nystroem(gamma=g, n_components=m, random_state=SEED) if method == "Nystroem" else RBFSampler(gamma=g, n_components=m, random_state=SEED)).fit(A)
+                F = feat.transform(A[sub])
+                lin = LinearSVC(C=10, max_iter=20_000).fit(feat.transform(A), ytr)
+                rows.append({"gamma": g, "method": method, "components": m, "mean |error| of K": np.abs(F @ F.T - K_sub).mean(),
+                             "test accuracy": lin.score(feat.transform(At), yte), "exact SVM": exact})
+    df = pd.DataFrame(rows)
+    print(df.pivot_table(index=["gamma", "components"], columns="method", values=["mean |error| of K", "test accuracy"]).to_string(float_format=lambda v: f"{v:.4f}"))
+    for g in [0.03, 0.1, 0.316]:
+        for method in ["Nystroem", "random Fourier features"]:
+            d = df[(df["gamma"] == g) & (df["method"] == method)]
+            ok = d[d["test accuracy"] >= d["exact SVM"] - 0.005]
+            print(f"gamma = {g}: {method}: smallest number of components within 0.5% of the exact accuracy {d['exact SVM'].iloc[0]:.4f}: "
+                  f"{int(ok['components'].min()) if len(ok) else 'none up to 800'}")
+
+
+solution_9_9()
+
+# %% [markdown]
+# For $\gamma = 0.03$ and $0.1$ the Nyström features reach the accuracy of the exact SVM ($0.991$) within $0.5\%$ with $200$ and $400$ landmarks, and the Fourier features with $400$ and $200$ components: the two are comparable at these bandwidths, and the single-seed comparison is too noisy to say more (the accuracy is not monotone in the number of components, because each size draws different random features). For $\gamma = 0.316$ the difference is large: the Nyström features need $100$ components and the Fourier features $800$. A larger $\gamma$ means a more slowly decaying spectrum of the Gram matrix (Figure 9.1(b)), and a Gram matrix that is close to the identity, which random Fourier features reproduce only with a large number of components, with an error that decreases like $D^{-1/2}$ whatever the spectrum; with very few components the Nyström features are already far ahead ($m = 25$ gives $0.920$ against $0.660$ for the Fourier features at $\gamma = 0.316$). The mean absolute error of the Gram matrix is a poor guide to the accuracy: for $\gamma = 0.03$ the Nyström error is more than an order of magnitude smaller than the Fourier one at the same number of components ($0.0013$ against $0.049$ at $100$), while the accuracies differ by $0.04$ at most, and by less than $0.005$ from $200$ components on.
+
+# %%
+def solution_9_10():
+    from scipy.stats import binomtest
+    from sklearn.datasets import load_digits
+    from sklearn.metrics.pairwise import chi2_kernel, linear_kernel, rbf_kernel
+    from sklearn.model_selection import StratifiedKFold, train_test_split
+    from sklearn.svm import SVC
+
+    dg = load_digits()
+    Xtr, Xte, ytr, yte = train_test_split(dg.data, dg.target, test_size=0.25, random_state=SEED, stratify=dg.target)
+    A, At = Xtr / 16, Xte / 16
+    skf = StratifiedKFold(5, shuffle=True, random_state=SEED)
+    builders = {"Gaussian": lambda X, Y, g: rbf_kernel(X, Y, gamma=g),
+                "chi-square": lambda X, Y, g: chi2_kernel(X, Y, gamma=g),
+                "Gaussian + linear": lambda X, Y, g: rbf_kernel(X, Y, gamma=g) + linear_kernel(X, Y)}
+    gammas = {"Gaussian": [0.03, 0.1, 0.316, 1.0], "chi-square": [0.03, 0.1, 0.3, 1.0], "Gaussian + linear": [0.03, 0.1, 0.316, 1.0]}
+    rows, preds = [], {}
+    for name, build in builders.items():
+        best = None
+        for g in gammas[name]:
+            K = build(A, A, g)
+            for C in [1, 10, 100]:
+                accs = []
+                for tr, va in skf.split(A, ytr):
+                    m = SVC(kernel="precomputed", C=C, tol=1e-4).fit(K[np.ix_(tr, tr)], ytr[tr])
+                    accs.append(m.score(K[np.ix_(va, tr)], ytr[va]))
+                if best is None or np.mean(accs) > best[0]:
+                    best = (np.mean(accs), g, C)
+        acc_cv, g, C = best
+        K = build(A, A, g)
+        final = SVC(kernel="precomputed", C=C, tol=1e-6).fit(K, ytr)
+        preds[name] = final.predict(build(At, A, g))
+        rows.append({"kernel": name, "gamma": g, "C": C, "5-fold accuracy": acc_cv, "test accuracy": np.mean(preds[name] == yte), "test errors": int(np.sum(preds[name] != yte)),
+                     "smallest eigenvalue of the Gram matrix": np.linalg.eigvalsh(K).min()})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    for other in ["chi-square", "Gaussian + linear"]:
+        a, b = preds[other] == yte, preds["Gaussian"] == yte
+        only_a, only_b = int(np.sum(a & ~b)), int(np.sum(~a & b))
+        p = binomtest(min(only_a, only_b), only_a + only_b, 0.5).pvalue if only_a + only_b else 1.0
+        print(f"McNemar, {other} against Gaussian: {only_a} against {only_b} discordant images, p = {p:.3f}")
+
+
+solution_9_10()
+
+# %% [markdown]
+# The three kernels have positive definite Gram matrices (the smallest eigenvalues are $0.012$, $0.044$ and $0.013$) and give practically the same results: test accuracies of $0.989$ ($5$ errors in $450$ images) for the Gaussian kernel and for the Gaussian plus linear kernel, and $0.987$ ($6$ errors) for the $\chi^2$ kernel, with $5$-fold accuracies of $0.991$, $0.984$ and $0.989$. McNemar's test finds no difference: $0$ against $1$ discordant images for the $\chi^2$ kernel and $2$ against $2$ for the sum ($p = 1$ in both cases). There is no advantage in the kernel designed for non-negative histograms on this data set: the $\chi^2$ kernel is a natural choice for histograms of counts, and the pixel intensities of an $8\times 8$ image are not that; the lesson is that *a kernel is a statement about similarity*, and that the choice among reasonable kernels matters much less than the scale of the features (Section 9.6.4) or the choice of $(C, \gamma)$.

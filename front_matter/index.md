@@ -6,7 +6,7 @@
 
 **Mario Medone**
 
-Version 0.8.0 · 2026
+Version 0.9.0 · 2026
 
 ![Abstract banner: a grid of numbers on the left, standing for a matrix, is connected to a layered neural network on the right.](cover.png)
 
@@ -18,7 +18,7 @@ Every chapter pairs mathematics with code. Derivations are written out step by s
 
 ## Status
 
-This book is a work in progress and is published one chapter at a time. Each release has a version number, and version 1.0.0 will mark the complete book. The current version is **0.8.0**.
+This book is a work in progress and is published one chapter at a time. Each release has a version number, and version 1.0.0 will mark the complete book. The current version is **0.9.0**.
 
 ## Read, run, and contribute
 

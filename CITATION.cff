@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this book, please cite it as below."
 title: "Machine Learning with Python: From Linear Algebra to Deep Learning. A Hands-On Mathematical Guide with Jupyter Notebooks, scikit-learn and PyTorch"
-version: 0.8.0
+version: 0.9.0
 authors:
   - family-names: Medone
     given-names: Mario

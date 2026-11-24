@@ -134,6 +134,18 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $e_t,\ I_{\text{up}},\ I_{\text{low}}$ | In SMO: $e_t=y_t-\sum_s\alpha_sy_sK_{st}$ and the index sets of the multipliers that can still move up or down (Proposition 8.7) |
 | $G$ | Bound on the norm of the subgradients in Theorem 8.6. (Not to be confused with the gradient $G$ of the dual used in the code of SMO.) |
 
+## Kernels (Chapter 9)
+
+| Symbol | Meaning |
+|---|---|
+| $k(\mathbf{x},\mathbf{z})$ | Kernel: an inner product in a feature space, $k(\mathbf{x},\mathbf{z})=\langle\boldsymbol\phi(\mathbf{x}),\boldsymbol\phi(\mathbf{z})\rangle$; equivalently a symmetric function whose Gram matrices are positive semidefinite (Theorem 9.1) |
+| $\mathbf{K}$ | Gram (kernel) matrix of the sample, $K_{ij}=k(\mathbf{x}_i,\mathbf{x}_j)$; $\mathbf{K}_{nm}$, $\mathbf{K}_{mm}$ are the blocks between the sample and $m$ landmarks, and among the landmarks (Nyström). (In Chapter 5, $K$ is the number of folds; in Chapter 6, the number of classes.) |
+| $\gamma$ | Bandwidth parameter of the Gaussian and Laplacian kernels, $\exp(-\gamma\lVert\mathbf{x}-\mathbf{z}\rVert^2)$; $1/\sqrt\gamma$ is the length scale. In the polynomial kernel $(\gamma\,\mathbf{x}^\top\mathbf{z}+c)^p$, $\gamma$ is a scale and $c$ the offset |
+| $\mathcal{H}_k,\ \lVert f\rVert_{\mathcal{H}}$ | Reproducing kernel Hilbert space of $k$ and the norm in it; $f(\mathbf{x})=\langle f,k(\cdot,\mathbf{x})\rangle$ (reproducing property); $\lVert f\rVert^2_{\mathcal{H}}=\boldsymbol\alpha^\top\mathbf{K}\boldsymbol\alpha$ for $f=\sum_i\alpha_ik(\cdot,\mathbf{x}_i)$ |
+| $\boldsymbol\alpha$ | Coefficients of the representer theorem, $f=\sum_i\alpha_ik(\cdot,\mathbf{x}_i)$; for the SVM they are $\alpha_iy_i$ with the multipliers $\alpha_i$ of Chapter 8, for kernel ridge regression $(\mathbf{K}+\lambda\mathbf{I})^{-1}\mathbf{y}$ |
+| $\mathbf{H}_\lambda,\ \mu_j$ | Smoother $\mathbf{K}(\mathbf{K}+\lambda\mathbf{I})^{-1}$ of kernel ridge regression (as in Chapter 6) and the eigenvalues of $\mathbf{K}$, with $\operatorname{df}(\lambda)=\sum_j\mu_j/(\mu_j+\lambda)$ |
+| $\mathbf{z}(\mathbf{x}),\ D$ | Random Fourier feature map into $\mathbb{R}^D$ (Theorem 9.7). (Not to be confused with the point $\mathbf{z}$ at which a kernel is evaluated.) |
+
 ## Probability
 
 | Symbol | Meaning |
