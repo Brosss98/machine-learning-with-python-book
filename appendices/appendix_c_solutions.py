@@ -2246,3 +2246,303 @@ solution_7_10()
 # %% [markdown]
 # The Breast Cancer training set is separable: the hard-margin classifier has $\lVert\hat{\mathbf{w}}\rVert = 28.4$, $24$ active constraints, and a test accuracy of $0.930$ ($133$ of $143$ patients). Gradient descent on the unpenalized logistic loss approaches this direction extremely slowly: the angle is $71^\circ$ after $10$ steps, $38^\circ$ after $10^4$ and $9.3^\circ$ after $10^6$; the geometric margin is *negative* (the training set is not yet separated) until a number of steps between $10^5$ and $10^6$, and equals $63\%$ of the maximum at $10^6$. The norm grows from $29$ to $76$ in the last decade ($+46$, approaching the $+65$ predicted by $\lVert\hat{\mathbf{w}}\rVert\ln 10$), and the training loss is still $2.6 \cdot 10^{-3}$. This is the $O(1/\ln k)$ of Theorem 7.14, much slower than on Iris (Section 7.7.3), where the margin was at $96\%$ of the maximum after $10^3$ steps and at $99\%$ after $10^4$: with $31$ parameters and $426$ points the data separate with a thin margin and the limit is reached only after astronomical times.
 # (c) The test accuracy of the iterates is $0.972$, $0.986$, $0.965$, $0.965$, $0.937$ and $0.930$ at $k = 10, \dots, 10^6$: it falls as the iterate approaches the hard-margin classifier and ends at its value ($0.930$). The early-stopped iterates are *better* than the limit, by $5$ to $8$ patients out of $143$, the same lesson as Section 7.7.2: stopping early regularizes (Proposition 7.13), and the implicit bias of the limit, the maximum-margin classifier fitted without penalty in $31$ dimensions with $24$ active points, is not the best bias for these data (the unpenalized fit also had a test log-loss of $2.17$ against $0.078$ at $C = 1$ in Section 6.4.4). Two cautions: the test set is small, and the differences among the first four accuracies ($0.965$ to $0.986$, up to three patients) are within the noise of the evaluation; the difference to the limit is larger, but it comes from one split, and the number of steps would have to be chosen on validation data (Chapter 5), not on the test set.
+
+# %% [markdown]
+# ## C.8 Chapter 8
+#
+# ### Manual exercises
+#
+# **Solution 8.1 — A hard-margin SVM by hand.**
+#
+# (a) The closest points of the two classes are $\mathbf{x}_2 = (1, 1)$ (negative) and $\mathbf{x}_3 = (2, 0)$ (positive), at distance $\sqrt2$, and the direction of $\mathbf{w}$ is $\mathbf{x}_3 - \mathbf{x}_2 = (1, -1)$: write $\mathbf{w} = (a, -a)$. The constraints of the two points hold with equality: for $\mathbf{x}_2$, $-(a - a + b) = 1$ gives $b = -1$, and for $\mathbf{x}_3$, $2a + b = 1$ gives $a = 1$. So $\mathbf{w} = (1, -1)$, $b = -1$, $\lVert\mathbf{w}\rVert = \sqrt2$, margin $1/\lVert\mathbf{w}\rVert = 1/\sqrt2 \approx 0.707$ (the strip has width $\sqrt2$). The scores of the five points are $-1, -1, 1, 1, 4$ for $\mathbf{x}_1, \dots, \mathbf{x}_5$, so all the constraints $y_i(\mathbf{w}^\top\mathbf{x}_i + b)\ge 1$ hold.
+#
+# (b) With only $\mathbf{x}_2$ and $\mathbf{x}_3$ as support vectors, $\mathbf{w} = \alpha_3\mathbf{x}_3 - \alpha_2\mathbf{x}_2 = (2\alpha_3 - \alpha_2,\ -\alpha_2) = (1, -1)$, so $\alpha_2 = 1$ and $\alpha_3 = 1$; the other multipliers are zero. Then $\sum_i\alpha_iy_i = -1 + 1 = 0$ and $\lVert\mathbf{w}\rVert^2 = 2 = \alpha_2 + \alpha_3$. The multipliers are non-negative, the primal constraints hold, and complementary slackness holds (the two positive multipliers belong to points whose score has absolute value exactly $1$, and all the others are zero): by Theorem 8.2 this is the optimal solution.
+#
+# (c) The points on the margin hyperplanes ($y_if(\mathbf{x}_i) = 1$) are $\mathbf{x}_1$, $\mathbf{x}_2$, $\mathbf{x}_3$ and $\mathbf{x}_4$; $\mathbf{x}_5$ has score $4$. But only $\mathbf{x}_2$ and $\mathbf{x}_3$ are support vectors ($\alpha_i > 0$). **The support vectors are a subset of the points on the margin**: Theorem 8.2 says that $\alpha_i > 0$ implies $y_if(\mathbf{x}_i) = 1$, not the converse. Here $\mathbf{x}_1$ and $\mathbf{x}_4$ lie exactly on the margin hyperplanes without influencing the solution (this is the *degenerate* case in which a constraint is active with a zero multiplier). The solution is unique, and removing $\mathbf{x}_1$, $\mathbf{x}_4$ or $\mathbf{x}_5$ would not change it.
+#
+# **Solution 8.2 — Small $C$: the nearest-centroid classifier.**
+#
+# (a) Take $\alpha_i = C$ for all $i$, $\mathbf{w} = C\sum_iy_i\mathbf{x}_i$ and $b = 0$, and check the sufficient KKT conditions of Theorem 8.4. The box constraint $0\le\alpha_i\le C$ holds; $\sum_i\alpha_iy_i = C\sum_iy_i = 0$ because the classes are balanced; and since all $\alpha_i = C$ the only condition is $m_i\le 1$. Now $\lVert\mathbf{w}\rVert\le C\sum_j\lVert\mathbf{x}_j\rVert\le CnR$, so $m_i = y_i\mathbf{w}^\top\mathbf{x}_i\le\lVert\mathbf{w}\rVert R\le CnR^2\le\tfrac12 < 1$. The conditions are sufficient, hence this $\boldsymbol\alpha$ solves the dual, and $\mathbf{w} = C\big(\sum_{y_i = 1}\mathbf{x}_i - \sum_{y_i = -1}\mathbf{x}_i\big) = C\frac n2(\bar{\mathbf{x}}_+ - \bar{\mathbf{x}}_-)$. This is the direction of the nearest-centroid classifier: **in the limit of strong regularization the SVM looks only at the class means**, not at the margin.
+#
+# (b) With $n = 4$ and $R^2 = 5$ (the point $(1, 2)$), the condition is $C\le 1/40$. The class means are $\bar{\mathbf{x}}_+ = (\tfrac12, \tfrac32)$ and $\bar{\mathbf{x}}_- = (\tfrac12, 0)$, so $\mathbf{w} = C\cdot 2\cdot(0, \tfrac32) = (0, 3C)$; for $C = 1/40$, $\mathbf{w} = (0, 0.075)$. The margins $y_i\mathbf{w}^\top\mathbf{x}_i$ are $0, 0, 0.075, 0.15$, all below $1$.
+#
+# (c) No. With all $\alpha_i = C$ the KKT conditions only require $y_i(\mathbf{w}^\top\mathbf{x}_i + b)\le 1$, which for these data and $C = 1/40$ gives $-1\le b\le 0.85$ (the strictest constraints are those of the first negative point, $-b\le 1$, and of the last positive point, $0.15 + b\le 1$). Any such $b$ is optimal: the primal objective $\tfrac12\lVert\mathbf{w}\rVert^2 + C\sum_i(1 - y_i\mathbf{w}^\top\mathbf{x}_i - y_ib)$ does not depend on $b$ because $\sum_iy_i = 0$. The intercept is determined only when there is a free support vector ($0 < \alpha_i < C$); this is the degenerate case mentioned in Proposition 8.8.
+#
+# **Solution 8.3 — What the losses estimate.**
+#
+# (a) For $f\in[-1, 1]$ both terms of $g(f) = \eta(1 - f)^2 + (1 - \eta)(1 + f)^2$ are positive, and $g'(f) = -2\eta(1 - f) + 2(1 - \eta)(1 + f) = 2(f - (2\eta - 1))$, which vanishes at $f = 2\eta - 1\in[-1, 1]$, where $g$ is convex. For $f > 1$ we have $g = (1 - \eta)(1 + f)^2$, increasing, and for $f < -1$, $g = \eta(1 - f)^2$, decreasing; so $f^\ast = 2\eta - 1$. The minimum value is $\eta(2 - 2\eta)^2 + (1 - \eta)(2\eta)^2 = 4\eta(1 - \eta)[(1 - \eta) + \eta] = 4\eta(1 - \eta)$.
+#
+# (b) $g(f) = \eta\log(1 + e^{-f}) + (1 - \eta)\log(1 + e^f)$ has $g'(f) = -\eta\sigma(-f) + (1 - \eta)\sigma(f) = \sigma(f) - \eta$ (using $\sigma(-f) = 1 - \sigma(f)$), which vanishes at $\sigma(f) = \eta$, that is $f^\ast = \ln\frac{\eta}{1 - \eta}$; $g$ is convex ($g'' = \sigma(f)\sigma(-f) > 0$). Since $\log(1 + e^{-f^\ast}) = -\ln\sigma(f^\ast) = -\ln\eta$ and $\log(1 + e^{f^\ast}) = -\ln(1 - \eta)$, the minimum is $-\eta\ln\eta - (1 - \eta)\ln(1 - \eta)$, the entropy of a Bernoulli($\eta$) variable.
+#
+# (c) For $\eta = 0.8$: the hinge loss gives $f^\ast = +1$ with minimum $2(1 - \eta) = 0.4$; the squared hinge loss $f^\ast = 0.6$ with minimum $4\cdot 0.8\cdot 0.2 = 0.64$; the logistic loss $f^\ast = \ln 4 = 1.386$ with minimum $-0.8\ln 0.8 - 0.2\ln 0.2 = 0.500$. The hinge loss only says that $\eta > \tfrac12$, whatever the value of $\eta$ (the same $f^\ast = 1$ for $\eta = 0.51$ and $\eta = 0.99$); the squared hinge loss recovers $\eta = (1 + f^\ast)/2$ linearly (and saturates at $\pm1$ for $\eta\in\{0, 1\}$); the logistic loss recovers $\eta = \sigma(f^\ast)$. A classifier that has to output probabilities should be trained with the last two.
+#
+# **Solution 8.4 — From soft to hard.**
+#
+# (a) Let $F_{\text{hard}} = \{\boldsymbol\alpha\ge\mathbf{0} : \sum_i\alpha_iy_i = 0\}$ and $F_C = \{\boldsymbol\alpha\in F_{\text{hard}} : \alpha_i\le C\}\subseteq F_{\text{hard}}$. The dual function $D(\boldsymbol\alpha) = \sum_i\alpha_i - \tfrac12\sum_{i,j}\alpha_i\alpha_jy_iy_j\mathbf{x}_i^\top\mathbf{x}_j$ is the same for both problems. If $C\ge C_0 = \max_i\hat\alpha_i$ then $\hat{\boldsymbol\alpha}\in F_C$, and since $\hat{\boldsymbol\alpha}$ maximizes $D$ over the larger set $F_{\text{hard}}$, it maximizes it over $F_C$: it is a solution of the soft-margin dual. The corresponding $\mathbf{w} = \sum_i\hat\alpha_iy_i\mathbf{x}_i$ is the hard-margin one. The primal solution of the soft-margin problem is unique in $\mathbf{w}$ (its objective, written with the hinge loss, is strictly convex in $\mathbf{w}$), so it equals $\hat{\mathbf{w}}$; and since the hard-margin constraints hold, all the slacks are zero.
+#
+# (b) For Worked example 8.1, $\hat{\boldsymbol\alpha} = (\tfrac14, \tfrac14, \tfrac12, 0, 0)$, so $C_0 = \tfrac12$. For $C = 0.4 < C_0$ guess that $\alpha_3 = C$ (bounded), that $\mathbf{x}_1$, $\mathbf{x}_2$ are free and $\alpha_4 = \alpha_5 = 0$. Then $\mathbf{w} = (\alpha_3 - 2\alpha_2,\ 2\alpha_3) = (0.4 - 2\alpha_2,\ 0.8)$ and $\sum_i\alpha_iy_i = 0$ gives $\alpha_1 + \alpha_2 = 0.4$. The free support vectors have score exactly $-1$: $\mathbf{x}_1$ gives $-b = 1$, so $b = -1$; $\mathbf{x}_2$ gives $-(2w_1 + b) = 1$, so $w_1 = 0$ and $\alpha_2 = 0.2$, $\alpha_1 = 0.2$. The solution is $\mathbf{w} = (0, 0.8)$, $b = -1$, $\boldsymbol\alpha = (0.2, 0.2, 0.4, 0, 0)$. The KKT conditions hold: $\mathbf{x}_3$ has score $1.6 - 1 = 0.6\le 1$ with $\alpha_3 = C$; $\mathbf{x}_4$ and $\mathbf{x}_5$ have scores $1.4$ and $2.2$, above $1$ with $\alpha = 0$; $\mathbf{x}_1, \mathbf{x}_2$ have margin exactly $1$ with $0 < \alpha < C$. The margin $1/\lVert\mathbf{w}\rVert = 1.25$ is wider than the hard margin ($1$), and $\mathbf{x}_3$ is inside the strip.
+#
+# **Solution 8.5 — A kernel by hand.**
+#
+# (a) A function $x\mapsto wx + b$ is monotone, so if it is positive at $x = -3$ and at $x = 3$, it is positive at the midpoint $x = 0$ (its value there is the average of the two): the point $x = 0$, which is negative, is misclassified. No linear classifier in $x$ separates the classes.
+#
+# (b) In the plane of $\boldsymbol\phi(x) = (x, x^2)$ the negative points are $(-1, 1), (0, 0), (1, 1)$ and the positive points are $(-3, 9), (3, 9)$. The problem is symmetric under $x\mapsto -x$: if $(w_1, w_2, b)$ is feasible so is $(-w_1, w_2, b)$, and by convexity of the norm their average $(0, w_2, b)$ is feasible and no longer: the optimum has $w_1 = 0$. In the second coordinate $z = x^2$ the constraints are $-(w_2z + b)\ge 1$ for $z\in\{0, 1\}$ and $9w_2 + b\ge 1$, and the tight ones are those of $z = 1$ and $z = 9$: $-(w_2 + b) = 1$ and $9w_2 + b = 1$, so $w_2 = \tfrac14$, $b = -\tfrac54$. The margin is $1/\lVert\mathbf{w}\rVert = 4$ (the strip goes from $z = 1$ to $z = 9$), and the support vectors are the four points $x = \pm1$ and $x = \pm3$; $x = 0$ has score $-\tfrac54$, beyond the margin. By symmetry take $\alpha = a$ at $x = \pm1$ and $\alpha = c$ at $x = \pm3$: the first coordinate of $\mathbf{w}$ vanishes automatically, the second is $-2a + 18c = \tfrac14$, and $\sum_i\alpha_iy_i = -2a + 2c = 0$ gives $a = c$, hence $16a = \tfrac14$ and $a = \tfrac1{64}$. Check: $\sum_i\alpha_i = \tfrac4{64} = \tfrac1{16} = \lVert\mathbf{w}\rVert^2$.
+#
+# (c) $\hat f(x) = \sum_i\alpha_iy_ik(x_i, x) + b = \tfrac1{64}\big[-k(-1, x) - k(1, x) + k(-3, x) + k(3, x)\big] - \tfrac54$ with $k(x_i, x) = x_ix + x_i^2x^2$. The bracket is $-(-x + x^2) - (x + x^2) + (-3x + 9x^2) + (3x + 9x^2) = 16x^2$, so $\hat f(x) = \tfrac{x^2}4 - \tfrac54$, the same function as $\mathbf{w}^\top\boldsymbol\phi(x) + b$. Then $\hat f(0) = -1.25$, $\hat f(2) = -0.25$, $\hat f(\sqrt5) = 0$ and $\hat f(3) = 1$: the classifier is positive for $\lvert x\rvert > \sqrt5\approx 2.24$ and negative inside.
+#
+# (d) $\mathbf{w}$ and $b$ are unique, but the multipliers are not. With $\alpha_{\pm1}$ and $\alpha_{\pm3}$ for the four support vectors the three conditions of the dual give $\alpha_{-1} + \alpha_1 = \alpha_{-3} + \alpha_3 = \tfrac1{32}$ and $\alpha_{-1} - \alpha_1 = 3(\alpha_{-3} - \alpha_3)$, a one-parameter family (the free parameter is $\alpha_3 - \alpha_{-3}$); the symmetric solution above is one member, and the solver of scikit-learn returns another one (with unequal multipliers) for the same classifier. This happens when there are more support vectors than constraints that determine them.
+#
+# ### Python exercises
+
+# %%
+def solution_8_6():
+    from sklearn.datasets import load_iris
+    from sklearn.model_selection import LeaveOneOut, StratifiedKFold, cross_val_predict
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVC
+
+    iris = load_iris()
+    mask = iris.target > 0                                              # versicolor and virginica
+    X, y = iris.data[mask], 2.0 * (iris.target[mask] - 1) - 1
+    n = len(y)
+    skf = StratifiedKFold(10, shuffle=True, random_state=SEED)
+    rows = []
+    for C in [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 100]:
+        make = lambda: make_pipeline(StandardScaler(), SVC(kernel="linear", C=C, tol=1e-6))
+        model = make().fit(X, y)
+        n_sv = len(model[-1].support_)
+        loo = np.mean(cross_val_predict(make(), X, y, cv=LeaveOneOut()) != y)
+        cv = np.mean(cross_val_predict(make(), X, y, cv=skf) != y)
+        rows.append({"C": C, "support vectors": n_sv, "SV fraction": n_sv / n, "training error": np.mean(model.predict(X) != y), "10-fold error": cv, "LOO error": loo})
+    df = pd.DataFrame(rows)
+    print(df.to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    print("Proposition 8.8 (LOO error <= SV fraction) holds for every C:", bool((df["LOO error"] <= df["SV fraction"] + 1e-12).all()))
+    i = int(df["10-fold error"].idxmin())
+    se = np.sqrt(df.loc[i, "10-fold error"] * (1 - df.loc[i, "10-fold error"]) / n)
+    j = int(np.flatnonzero(df["10-fold error"] <= df.loc[i, "10-fold error"] + se)[0])
+    print(f"minimum of the 10-fold error at C = {df.loc[i, 'C']:g} ({df.loc[i, '10-fold error']:.3f}); standard error {se:.3f}; one-standard-error rule: C = {df.loc[j, 'C']:g}")
+
+
+solution_8_6()
+
+# %% [markdown]
+# With the four standardized features the two species overlap only slightly: the training error is between $2\%$ and $6\%$ for every $C$, and the number of support vectors falls from $72$ of $100$ at $C = 0.01$ to $9$ at $C = 100$. The leave-one-out error is below the fraction of support vectors for every $C$ (Proposition 8.8): the bound is loose for strong regularization ($0.07$ against $0.72$ at $C = 0.01$) and less so for weak regularization ($0.03$ against $0.09$ at $C = 100$). The $10$-fold error has its minimum at $C = 10$ ($0.04$, with a standard error of $0.02$) and stays within one standard error of it for every value of the grid except the smallest ($C = 0.01$, error $0.07$); the one-standard-error rule therefore picks the most regularized of the others, $C = 0.03$ ($10$-fold error $0.05$, $52$ support vectors). With $100$ flowers a difference of one flower is $1\%$: the data do not distinguish between these values of $C$, and the choice should be made on other grounds (simplicity, the margin, stability).
+
+# %%
+def solution_8_7():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVC
+
+    bc = load_breast_cancer(as_frame=True)
+    X, y01 = bc.data.to_numpy(), (1 - bc.target).to_numpy()
+    Xtr, _, ytr, _ = train_test_split(X, y01, test_size=0.25, random_state=SEED, stratify=y01)
+    Z = StandardScaler().fit_transform(Xtr)
+    s = 2.0 * ytr - 1
+    K = Z @ Z.T
+
+    def smo(K, y, C, tol=1e-9, second_order=False, max_iter=500_000):
+        n = len(y)
+        alpha, G = np.zeros(n), -np.ones(n)
+        for it in range(1, max_iter + 1):
+            e = -y * G
+            up = ((y == 1) & (alpha < C)) | ((y == -1) & (alpha > 0))
+            low = ((y == 1) & (alpha > 0)) | ((y == -1) & (alpha < C))
+            i = np.flatnonzero(up)[np.argmax(e[up])]
+            if second_order:
+                cand = np.flatnonzero(low & (e < e[i]))
+                if len(cand) == 0:
+                    break
+                a_it = np.maximum(K[i, i] + np.diag(K)[cand] - 2 * K[i, cand], 1e-12)
+                j = cand[np.argmin(-(e[i] - e[cand]) ** 2 / a_it)]
+                gap = e[i] - e[np.flatnonzero(low)[np.argmin(e[low])]]            # the stopping rule stays the maximal violation
+            else:
+                j = np.flatnonzero(low)[np.argmin(e[low])]
+                gap = e[i] - e[j]
+            if gap <= tol:
+                break
+            a = max(K[i, i] + K[j, j] - 2 * K[i, j], 1e-12)
+            t_i = (C - alpha[i]) if y[i] == 1 else alpha[i]
+            t_j = alpha[j] if y[j] == 1 else (C - alpha[j])
+            t = min((e[i] - e[j]) / a, t_i, t_j)
+            d_i, d_j = y[i] * t, -y[j] * t
+            alpha[i] += d_i
+            alpha[j] += d_j
+            G += (y * y[i]) * K[:, i] * d_i + (y * y[j]) * K[:, j] * d_j
+        return alpha, it
+
+    rows = []
+    for C in [0.1, 1, 10]:
+        a1, it1 = smo(K, s, C)
+        a2, it2 = smo(K, s, C, second_order=True)
+        ref = SVC(kernel="linear", C=C, tol=1e-9).fit(Z, s)
+        w1, w2 = (a1 * s) @ Z, (a2 * s) @ Z
+        rows.append({"C": C, "maximal violation": it1, "second order": it2, "SVC (libsvm) n_iter_": int(np.ravel(ref.n_iter_)[0]),
+                     "rel. diff. of w (1st order)": np.linalg.norm(w1 - ref.coef_.ravel()) / np.linalg.norm(ref.coef_),
+                     "rel. diff. of w (2nd order)": np.linalg.norm(w2 - ref.coef_.ravel()) / np.linalg.norm(ref.coef_)})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.2e}" if v < 1e-2 else f"{v:.4g}"))
+
+
+solution_8_7()
+
+# %% [markdown]
+# Both versions converge to the same classifier (relative difference of $\mathbf{w}$ below $5\cdot 10^{-6}$ in all cases, limited by the tolerance of the reference solver). The second-order choice of the pair reduces the number of iterations substantially: $2{,}072$ against $3{,}216$ at $C = 0.1$, $9{,}890$ against $20{,}899$ at $C = 1$ and $19{,}077$ against $65{,}743$ at $C = 10$, a reduction by a factor of $1.6$ to $3.4$ that grows with $C$. The counts are close to those of libsvm ($2{,}117$, $9{,}524$, $20{,}452$), which uses the same criterion with a slightly different stopping rule. Each iteration is a little more expensive (it evaluates the criterion for all the candidates $t$, an $O(n)$ computation that is of the same order as the update of the gradient), so the reduction in iterations is a reduction of the time as well.
+
+# %%
+def solution_8_8():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    bc = load_breast_cancer(as_frame=True)
+    X, y01 = bc.data.to_numpy(), (1 - bc.target).to_numpy()
+    Xtr, _, ytr, _ = train_test_split(X, y01, test_size=0.25, random_state=SEED, stratify=y01)
+    Z = StandardScaler().fit_transform(Xtr)
+    s = 2.0 * ytr - 1
+    n = len(s)
+    A = np.c_[np.ones(n), Z]                                            # the intercept is inside w (and penalized)
+    C = 1.0
+    lam = 1 / (n * C)
+    f = lambda w: 0.5 * lam * w @ w + np.mean(np.maximum(0, 1 - s * (A @ w)))
+
+    # exact minimum by dual coordinate descent
+    rng = np.random.default_rng(SEED)
+    alpha, w = np.zeros(n), np.zeros(A.shape[1])
+    q = np.einsum("ij,ij->i", A, A)
+    for sweep in range(1, 5001):
+        for i in rng.permutation(n):
+            g = s[i] * (w @ A[i]) - 1
+            new = min(max(alpha[i] - g / q[i], 0.0), C)
+            w += (new - alpha[i]) * s[i] * A[i]
+            alpha[i] = new
+        if sweep % 10 == 0 and (0.5 * w @ w + C * np.maximum(0, 1 - s * (A @ w)).sum() - alpha.sum() + 0.5 * w @ w) / (n * C) < 1e-9:
+            break
+    f_star = f(w)
+
+    total = 200_000                                                     # examples processed, the same for every batch size
+    epochs_marks = [1, 2, 5, 10, 20, 50, 100, 200, 400]
+    results = {}
+    for B in [1, 8, 64, 426]:
+        rng = np.random.default_rng(SEED)
+        radius = np.sqrt(2 / lam)
+        v = np.zeros(A.shape[1])
+        steps = total // B
+        marks = {int(round(e * n / B)): e for e in epochs_marks if round(e * n / B) >= 1 and round(e * n / B) <= steps}
+        gaps = {}
+        for k in range(1, steps + 1):
+            idx = rng.choice(n, size=B, replace=False) if B < n else np.arange(n)
+            viol = s[idx] * (A[idx] @ v) < 1
+            g = lam * v - (s[idx][viol, None] * A[idx][viol]).sum(axis=0) / B
+            v = v - g / (lam * k)
+            nv = np.linalg.norm(v)
+            if nv > radius:
+                v *= radius / nv
+            if k in marks:
+                gaps[marks[k]] = f(v) - f_star
+        results[B] = gaps
+    table = pd.DataFrame(results).T
+    table.index.name = "batch size B"
+    print(f"f* = {f_star:.6f}; suboptimality of the last iterate after the given number of epochs")
+    print(table.to_string(float_format=lambda v: f"{v:.2e}"))
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    for B, color, marker in zip(results, [ORANGE, GREEN, BLUE, VERMILION], ["s", "^", "o", "D"]):
+        e = np.array(list(results[B])); g = np.array(list(results[B].values()))
+        ax.loglog(e, g, color=color, marker=marker, lw=1.8, ms=5, label=f"$B = {B}$")
+        if len(e) >= 4:
+            sel = e >= 10
+            print(f"B = {B}: slope of the last-iterate gap against the epochs (epochs >= 10): {np.polyfit(np.log(e[sel]), np.log(g[sel]), 1)[0]:.2f}")
+    ax.set(xlabel="epochs", ylabel=r"suboptimality $f - f^\ast$", title="Mini-batch subgradient method")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_8_8()
+
+# %% [markdown]
+# At an equal number of epochs, the batch sizes $B = 1, 8, 64$ are not distinguishable within the noise of a single run: after $200$ epochs the suboptimality of the last iterate is between $1.5\cdot 10^{-3}$ and $4.0\cdot 10^{-3}$ for the three and between $7\cdot 10^{-4}$ and $1.3\cdot 10^{-3}$ after $400$ epochs. The slopes of the last-iterate gap against the epochs are $-0.84$, $-0.98$ and $-0.91$, close to the $-1$ of the $O(1/k)$ rate of Theorem 8.6. The contrast with Section 7.7.1 is instructive: there each batch size had its own tuned step size, and the best step grew with $B$, which made the larger batches more efficient per epoch. Here the step $1/(\lambda k)$ is *fixed by the strong convexity*, with no learning rate to tune, so a larger batch only reduces the variance of the gradient, which is not what limits the speed of this method on a problem of $426$ examples. The full batch ($B = 426$, which is the deterministic subgradient method) starts much worse (suboptimality $23$ after two epochs, because the first steps are huge: $1/(\lambda k)$ is $426$ at $k = 1$) but catches up: $2.3\cdot 10^{-3}$ after $100$ epochs. Its apparent slope of $-1.7$ is that recovery from a bad start, not an asymptotic rate.
+
+# %%
+def solution_8_9():
+    import time
+
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import LeaveOneOut, cross_val_predict, train_test_split
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVC
+
+    bc = load_breast_cancer(as_frame=True)
+    X, y01 = bc.data.to_numpy(), (1 - bc.target).to_numpy()
+    Xtr, Xte, ytr, yte = train_test_split(X, y01, test_size=0.25, random_state=SEED, stratify=y01)
+    make = lambda: make_pipeline(StandardScaler(), SVC(kernel="linear", C=0.1, tol=1e-6))
+    rows = []
+    t0 = time.perf_counter()
+    for n in [50, 100, 200, 426]:
+        draws = 1 if n == len(ytr) else 30                              # n = 426 is the whole training set: a single draw
+        out = []
+        for d in range(draws):
+            if n == len(ytr):
+                Xs, ys = Xtr, ytr
+            else:
+                Xs, _, ys, _ = train_test_split(Xtr, ytr, train_size=n, stratify=ytr, random_state=SEED + d)
+            model = make().fit(Xs, ys)
+            loo = np.mean(cross_val_predict(make(), Xs, ys, cv=LeaveOneOut()) != ys)
+            out.append((len(model[-1].support_) / n, loo, np.mean(model.predict(Xte) != yte)))
+        out = np.array(out)
+        rows.append({"n": n, "draws": draws, "SV fraction": out[:, 0].mean(), "SV fraction (sd)": out[:, 0].std(), "LOO error": out[:, 1].mean(),
+                     "LOO error (sd)": out[:, 1].std(), "test error": out[:, 2].mean(), "test error (sd)": out[:, 2].std()})
+    df = pd.DataFrame(rows)
+    print(df.to_string(index=False, float_format=lambda v: f"{v:.4f}"), f"\n(elapsed {time.perf_counter() - t0:.0f} s)")
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    for col, color, marker, lab in [("SV fraction", PURPLE, "D", "fraction of support vectors"), ("LOO error", BLUE, "o", "leave-one-out error"), ("test error", VERMILION, "^", "test error")]:
+        ax.errorbar(df["n"], df[col], yerr=df[col + " (sd)"], color=color, marker=marker, lw=1.8, capsize=3, label=lab)
+    ax.set(xscale="log", yscale="log", xlabel="training-set size $n$", ylabel="fraction", title="Breast Cancer, $C = 0.1$")
+    ax.set_xticks(df["n"]); ax.set_xticklabels(df["n"]); ax.minorticks_off()
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_8_9()
+
+# %% [markdown]
+# The fraction of support vectors decreases with $n$: $25\%$, $20\%$, $15\%$ and $12\%$ for $n = 50, 100, 200, 426$ (a decrease by a factor of $2.1$ for a factor $8.5$ in $n$, roughly like $n^{-0.35}$). The leave-one-out error and the test error decrease too, from $4.5\%$ and $4.6\%$ at $n = 50$ to $2.6\%$ and $2.1\%$ at $n = 426$, and their standard deviations over the draws shrink from about $2\%$ to $1\%$. The leave-one-out error is, on average, a good (slightly pessimistic for $n\ge 100$) estimate of the test error, and both are far below the fraction of support vectors: the bound of Proposition 8.8 is correct in every case but is $4.6$ to $5.6$ times larger than the quantity it bounds. That a smaller training set has proportionally more support vectors is plausible, since the margin of a sparse sample is crossed by a larger fraction of its points, but we have not tested this explanation. The test error of the $n = 426$ row is that of the single model of Section 8.6 ($2.1\%$ at $C = 0.1$), and the corresponding standard deviations are zero because there is only one draw.
+
+# %%
+def solution_8_10():
+    from scipy.stats import t as t_dist
+    from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import Ridge
+    from sklearn.model_selection import GridSearchCV, KFold, train_test_split
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import SVR
+
+    d = load_diabetes()
+    J, n_test = 20, 111
+    n_train = len(d.target) - n_test
+    rows = []
+    for j in range(J):
+        Xtr, Xte, ytr, yte = train_test_split(d.data, d.target, test_size=n_test, random_state=1000 + j)
+        kf = KFold(5, shuffle=True, random_state=SEED)
+        svr = GridSearchCV(make_pipeline(StandardScaler(), SVR(kernel="linear", epsilon=50, tol=1e-4)), {"svr__C": np.logspace(-1, 2, 7)},
+                           cv=kf, scoring="neg_root_mean_squared_error").fit(Xtr, ytr)
+        ridge = GridSearchCV(make_pipeline(StandardScaler(), Ridge()), {"ridge__alpha": np.logspace(-2, 3, 11)}, cv=kf, scoring="neg_root_mean_squared_error").fit(Xtr, ytr)
+        r = lambda m: np.sqrt(np.mean((m.predict(Xte) - yte) ** 2))
+        rows.append({"SVR": r(svr), "ridge": r(ridge)})
+    df = pd.DataFrame(rows)
+    diff = (df["SVR"] - df["ridge"]).to_numpy()
+    t_stat = diff.mean() / np.sqrt((1 / J + n_test / n_train) * diff.var(ddof=1))
+    p = 2 * t_dist.sf(abs(t_stat), J - 1)
+    print(f"test RMSE over {J} splits: SVR {df['SVR'].mean():.2f} (sd {df['SVR'].std():.2f}), ridge {df['ridge'].mean():.2f} (sd {df['ridge'].std():.2f})")
+    print(f"paired difference SVR - ridge: mean {diff.mean():.3f}, sd {diff.std(ddof=1):.3f}; SVR better in {int((diff < 0).sum())} of {J} splits")
+    print(f"corrected resampled t = {t_stat:.2f} with {J - 1} degrees of freedom, p = {p:.3f}; (naive t = {diff.mean() / np.sqrt(diff.var(ddof=1) / J):.2f})")
+
+
+solution_8_10()
+
+# %% [markdown]
+# Over $20$ random splits the test RMSE is $55.23$ ($\pm 3.21$ across splits) for SVR with $\varepsilon = 50$ and $55.07$ ($\pm 3.42$) for ridge. The paired difference has mean $0.15$ and standard deviation $0.64$, and SVR is better in $8$ of the $20$ splits. The naive paired $t$ statistic is $1.08$, and the corrected resampled statistic of Section 5.5.2, which accounts for the overlap between the training sets, is $0.39$ with $19$ degrees of freedom ($p = 0.70$): **the data do not allow us to conclude anything**, and the difference of $0.15$ is a small fraction of the variation across splits ($3.2$). As in Section 8.8.2, the $\varepsilon$-insensitive loss changes the *sparsity* of the solution but not its accuracy on this problem, and a comparison on a single split (the $53.0$ of the chapter against $53.3$ for ridge) would have been misleading in either direction.

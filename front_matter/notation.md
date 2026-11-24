@@ -119,6 +119,21 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $\mathbf{M},\ \mathbf{D}$ | Preconditioner $\mathbf{M}=\mathbf{D}\mathbf{D}^\top$ and the change of variables $\mathbf{w}=\mathbf{D}\mathbf{v}$ it comes from (Proposition 7.7) |
 | $\varphi_j(k)$ | Filter factor of the $j$-th eigendirection after $k$ gradient steps, $1-(1-\eta h_j)^k$, to compare with ridge's $h_j/(h_j+\lambda)$ (Proposition 7.13) |
 
+## Support vector machines (Chapter 8)
+
+| Symbol | Meaning |
+|---|---|
+| $y_i\in\{-1,+1\}$ | Class labels in this chapter and in Section 3.8.4 (Chapter 6 used $\{0, 1\}$ for the logistic regression and $\{-1, +1\}$ only for the signed score $m_i$) |
+| $f(\mathbf{x})=\mathbf{w}^\top\mathbf{x}+b$ | Score (decision function), with the intercept $b$ kept apart from $\mathbf{w}$ and not penalized; the prediction is $\operatorname{sign} f(\mathbf{x})$ |
+| $m_i=y_if(\mathbf{x}_i)$ | Margin of example $i$ (the signed score of Chapter 6): positive if correct, large if confidently correct. The **geometric margin** of a hyperplane is $\gamma=1/\lVert\mathbf{w}\rVert$ when the closest points have $m_i=1$ |
+| $\xi_i$ | Slack variable of example $i$, $\xi_i=\max\{0,1-m_i\}$ at the optimum |
+| $\ell_{\text{hinge}}(m)$ | Hinge loss $\max\{0,1-m\}$; $\ell_\varepsilon(r)=\max\{0,\lvert r\rvert-\varepsilon\}$ is the $\varepsilon$-insensitive loss of support vector regression |
+| $C,\ \lambda$ | Price of a margin violation, and the penalty $\lambda=1/(Cn)$ of the equivalent regularized hinge-loss problem, as in Section 6.5 |
+| $\alpha_i$ | Dual variable (Lagrange multiplier) of the constraint of example $i$; $\mathbf{w}=\sum_i\alpha_iy_i\mathbf{x}_i$. The **support vectors** are the examples with $\alpha_i>0$; those with $\alpha_i=C$ are *bounded*, those with $0<\alpha_i<C$ *free* |
+| $\mathbf{K},\ k(\mathbf{x},\mathbf{z})$ | Gram matrix $K_{ij}=\mathbf{x}_i^\top\mathbf{x}_j$ and its generalization, a kernel $k(\mathbf{x}_i,\mathbf{x}_j)=\boldsymbol\phi(\mathbf{x}_i)^\top\boldsymbol\phi(\mathbf{x}_j)$ (Chapter 9). (In Chapter 5, $K$ is the number of folds; in Chapter 6, the number of classes.) |
+| $e_t,\ I_{\text{up}},\ I_{\text{low}}$ | In SMO: $e_t=y_t-\sum_s\alpha_sy_sK_{st}$ and the index sets of the multipliers that can still move up or down (Proposition 8.7) |
+| $G$ | Bound on the norm of the subgradients in Theorem 8.6. (Not to be confused with the gradient $G$ of the dual used in the code of SMO.) |
+
 ## Probability
 
 | Symbol | Meaning |

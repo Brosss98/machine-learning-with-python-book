@@ -45,6 +45,7 @@ project:
         - file: chapters/ch05_model_evaluation_cv_tuning.ipynb
         - file: chapters/ch06_linear_models_regularization.ipynb
         - file: chapters/ch07_optimization_gd_sgd.ipynb
+        - file: chapters/ch08_support_vector_machines.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb
