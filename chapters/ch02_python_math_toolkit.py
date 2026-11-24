@@ -1539,6 +1539,7 @@ print("test R2 with this split:", round(model.score(X_te, y_te), 3))
 # - *Iris*: R. A. Fisher, "The use of multiple measurements in taxonomic problems", *Annals of Eugenics* 7(2), 179–188 (1936). Bundled with scikit-learn.
 # - *Wine*: M. Forina et al., *PARVUS: An Extendible Package for Data Exploration, Classification and Correlation*, Institute of Pharmaceutical and Food Analysis and Technologies, Genoa (1991). Obtained from the UCI Machine Learning Repository and bundled with scikit-learn.
 # - *Diabetes*: B. Efron, T. Hastie, I. Johnstone and R. Tibshirani, "Least Angle Regression", *Annals of Statistics* (with discussion), 407–499 (2004). Bundled with scikit-learn. The missing values and the categorical columns used in Section 2.7 were created artificially from the complete data, as explained there.
+# - *Breast Cancer Wisconsin (Diagnostic)*: W. N. Street, W. H. Wolberg and O. L. Mangasarian, "Nuclear feature extraction for breast tumor diagnosis", *IS&T/SPIE 1993 International Symposium on Electronic Imaging: Science and Technology*, volume 1905, 861–870 (1993). Bundled with scikit-learn.
 # - The screening-test numbers of Worked example 2.3 are illustrative.
 #
 # ### Further reading

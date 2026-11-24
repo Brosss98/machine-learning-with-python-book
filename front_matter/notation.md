@@ -47,6 +47,19 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $\nabla_{\mathbf{w}} L$ | Gradient of the function $L$ with respect to $\mathbf{w}$ |
 | $\operatorname{argmin}_{\mathbf{w}}\, L(\mathbf{w})$ | The value of $\mathbf{w}$ that minimizes $L$ |
 
+## Statistical learning theory (Chapter 3)
+
+| Symbol | Meaning |
+|---|---|
+| $f^\ast,\ R^\ast$ | Bayes predictor and Bayes risk: the smallest risk of any function |
+| $\eta(\mathbf{x})$ | Regression function $\mathbb{E}[y \mid \mathbf{x}]$ (for $y\in\{0,1\}$ it is $\mathbb{P}(y=1\mid\mathbf{x})$); not the learning rate |
+| $\hat f_S$ | The function chosen by empirical risk minimization on the training set $S$ |
+| $f_{\mathcal{H}}$ | The best function in $\mathcal{H}$, that is, the one with the smallest expected risk |
+| $\varepsilon,\ \delta$ | Accuracy and failure probability of a guarantee: "with probability at least $1-\delta$, the error is at most $\varepsilon$" |
+| $\Pi_{\mathcal{H}}(n)$ | Growth function: the largest number of labelings of $n$ points that $\mathcal{H}$ can produce |
+| $d_{\mathrm{VC}}$ | Vapnik–Chervonenkis dimension: the size of the largest set of points that $\mathcal{H}$ can label in all possible ways |
+| $\hat{\mathfrak{R}}_S(\mathcal{F}),\ \mathfrak{R}_n(\mathcal{F})$ | Empirical and expected Rademacher complexity of a class $\mathcal{F}$ |
+
 ## Probability
 
 | Symbol | Meaning |

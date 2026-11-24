@@ -627,3 +627,258 @@ solution_2_10()
 # (b) Scaling the whole data set before the split gives results that differ from the correct pipeline by about $0.001$ or less on average, with a standard deviation over the splits of about 0.01 (for $k = 1$ the accuracies are even identical on every split): the difference is not systematic, it is lost in the noise. The reason is that the mean and standard deviation of 178 samples hardly change when 30% of the samples are left out: a scaler learns very little from the data. This is why leakage through scalers often goes unnoticed. It would be a mistake to conclude that the rule is unimportant.
 #
 # (c) On random labels no method can be better than chance, so the correct accuracy is 0.5, and the pipeline indeed gives about 0.52. The "leaky" procedure reaches about 0.82: among 2000 random features, some happen to correlate with the random labels *of the whole data set, test samples included*, and keeping the ten best of them builds the test labels into the features. The model seems to have found real structure and has found none. The more the preprocessing step *learns*, in particular when it uses the labels, the larger the leak: **every step that is fitted must be inside the pipeline.**
+
+# %% [markdown]
+# ## C.3 Chapter 3
+#
+# ### Manual exercises
+#
+# **Solution 3.1 — The Bayes classifier with unequal priors.**
+#
+# (a) With $\pi_0 = 0.8$, $\pi_1 = 0.2$, the Bayes classifier predicts class 1 when $\pi_1 p_1(x) > \pi_0 p_0(x)$:
+# $$
+# 0.2\,e^{-(x-2)^2/2} > 0.8\,e^{-x^2/2}
+# \iff -\tfrac{(x-2)^2}{2} + \tfrac{x^2}{2} > \ln 4
+# \iff 2x - 2 > \ln 4
+# \iff x > 1 + \tfrac{\ln 4}{2} \approx 1.693.
+# $$
+# The threshold is **not** the midpoint $x = 1$: the rarer class must be more convincing, so the boundary moves toward its mean by $\sigma^2\ln(\pi_0/\pi_1)/(\mu_1 - \mu_0) = 0.693$.
+#
+# (b) With $t = 1 + \tfrac{\ln 4}{2}$, the two error probabilities are $\mathbb{P}(x > t \mid y = 0) = 1 - \Phi(t) = 0.0452$ and $\mathbb{P}(x \le t \mid y = 1) = \Phi(t - 2) = \Phi(-0.307) = 0.3795$, so
+# $$
+# R^\ast = 0.8 \cdot 0.0452 + 0.2 \cdot 0.3795 = 0.1121.
+# $$
+#
+# (c) "Always predict 0" is wrong exactly on class 1: $R = 0.2$. The midpoint rule has $R = 0.8\,(1 - \Phi(1)) + 0.2\,\Phi(-1) = \Phi(-1) = 0.1587$ (the two error probabilities are equal, so the priors do not matter). The Bayes classifier, with $0.1121$, is better than both: ignoring the priors costs $0.1587 - 0.1121 = 0.0466$, and ignoring the input entirely costs $0.2 - 0.1121 = 0.0879$.
+#
+# **Solution 3.2 — Which prediction does each loss prefer?**
+#
+# (a) Add and subtract $\eta(\mathbf{x})$ inside the square:
+# $$
+# (y - f)^2 = (y - \eta)^2 + 2\,(y - \eta)(\eta - f) + (\eta - f)^2 .
+# $$
+# Condition on $\mathbf{x}$: $\eta(\mathbf{x})$ and $f(\mathbf{x})$ are constants, and $\mathbb{E}[y - \eta(\mathbf{x}) \mid \mathbf{x}] = 0$, so the expectation of the cross term is $\mathbb{E}\big[2\,(\eta - f)\,\mathbb{E}[y - \eta \mid \mathbf{x}]\big] = 0$. Taking the expectation of the other two terms gives the result. Its first term is $R^\ast$ and does not depend on $f$; the second is non-negative and zero only for $f = \eta$.
+#
+# (b) For $y$ uniform on $\{0, 1, 10\}$ the mean is $11/3 = 3.667$ and the variance is $101/3 - (11/3)^2 = 20.22$. The squared loss $\mathbb{E}[(y - a)^2] = 20.22 + (a - 3.667)^2$ is minimized by the **mean** $a = 3.667$. The expected absolute loss is piecewise linear in $a$ with kinks at the data values; its slope is $\tfrac13(\#\{y_i < a\} - \#\{y_i > a\})$, negative for $a < 1$ and positive for $a > 1$, so the minimum is at the **median** $a = 1$.
+#
+# | Constant | $\mathbb{E}[(y - a)^2]$ | $\mathbb{E}\lvert y - a\rvert$ |
+# |---|---|---|
+# | mean, $a = 3.667$ | **20.22** | 4.22 |
+# | median, $a = 1$ | 27.33 | **3.33** |
+#
+# Each constant wins on its own loss. The outlier (the value 10) drags the mean away from the bulk of the data and contributes with its *square* to the squared loss; the median is not moved by how far the outlier is. This is the reason why the absolute loss is called *robust*, and why the choice of the loss is part of the specification of the problem.
+#
+# **Solution 3.3 — Sizing a test set.** Here $\varepsilon = 0.03$ and $\delta = 0.05$.
+#
+# (a) Hoeffding: $n \ge \ln(2/\delta)/(2\varepsilon^2) = \ln 40/0.0018 = 2049.4$, so **2050** examples.
+#
+# (b) Chebyshev, with $\sigma^2 \le \tfrac14$: $n \ge \sigma^2/(\varepsilon^2\delta) = 0.25/(0.0009 \cdot 0.05) = 5555.6$, so **5556** examples: 2.7 times more than Hoeffding.
+#
+# (c) With $p = 0.05$, $\sigma^2 = p(1 - p) = 0.0475$ and $n \ge 0.0475/(0.0009 \cdot 0.05) = 1055.6$, so **1056** examples, about half of the Hoeffding value. Hoeffding uses only the range $[0, 1]$ of the variable, and must hold for the *worst* variable of that range ($p = \tfrac12$, variance $\tfrac14$); Chebyshev uses the actual variance, which for a rare event is 5 times smaller. The ratio of the two sample sizes is $2\sigma^2/(\delta\ln(2/\delta))$, which is $0.51$ here. Chebyshev's dependence on $\delta$ is much worse ($1/\delta$ instead of $\ln(1/\delta)$), so for a smaller $\delta$ Hoeffding wins again: with $\delta = 10^{-4}$ it needs 5,502 examples against 527,778 for Chebyshev with the same variance $0.0475$. (Bernstein's inequality, not covered here, uses the variance *and* has the logarithmic dependence on $\delta$.)
+#
+# (d) For $m = 1000$: $\sqrt{\ln(40)/2000} = 0.043$, that is $\pm 4.3$ percentage points.
+#
+# **Solution 3.4 — The realizable case.**
+#
+# (a) Call a function $f$ **bad** if $R(f) > \varepsilon$. A bad function is consistent with one random example with probability $1 - R(f) < 1 - \varepsilon$, and with all $n$ independent examples with probability at most $(1 - \varepsilon)^n \le e^{-\varepsilon n}$ (because $1 - u \le e^{-u}$). The ERM output has zero training error, so if $R(\hat f) > \varepsilon$ some bad function is consistent with the whole sample. By the union bound over at most $\lvert\mathcal{H}\rvert$ bad functions, $\mathbb{P}(R(\hat f) > \varepsilon) \le \lvert\mathcal{H}\rvert\,e^{-\varepsilon n}$.
+#
+# (b) Setting $\lvert\mathcal{H}\rvert\,e^{-\varepsilon n} \le \delta$ gives $n \ge (\ln\lvert\mathcal{H}\rvert + \ln(1/\delta))/\varepsilon$. For the conjunctions, $\ln 3^{10} = 10.99$ and $\ln(1/0.01) = 4.61$, so $n \ge 15.59/0.05 = 311.8$: **312 examples**.
+#
+# (c) In the agnostic case Corollary 3.2 gives an estimation error of at most $2\varepsilon'$ with $\varepsilon' = \sqrt{(\ln\lvert\mathcal{H}\rvert + \ln(2/\delta))/(2n)}$; setting $2\varepsilon' = 0.05$ gives $n \ge 4\,(\ln\lvert\mathcal{H}\rvert + \ln(2/\delta))/(2 \cdot 0.05^2) = 4 \cdot 16.28/0.005 =$ **13,028 examples**, about 42 times more. The difference is in the dependence on the accuracy: **$1/\varepsilon$** when the training error can be zero, **$1/\varepsilon^2$** in general. In the realizable case a function with true risk $\varepsilon$ is eliminated very quickly, because a mistake on it is *certain* to appear in the sample if it is made often enough; in the agnostic case the empirical risks of good and almost good functions differ by amounts of order $\varepsilon$ that fluctuate with standard deviation of order $1/\sqrt{n}$, and telling them apart takes $n \sim 1/\varepsilon^2$.
+#
+# **Solution 3.5 — Why $\sqrt{\ln m}$?**
+#
+# (a) For any $s > 0$, Jensen's inequality for the convex function $z \mapsto e^{sz}$ gives
+# $$
+# e^{s\,\mathbb{E}[\max_j Z_j]} \le \mathbb{E}\big[e^{s\max_j Z_j}\big] = \mathbb{E}\big[\max_j e^{sZ_j}\big] \le \sum_{j=1}^m \mathbb{E}\big[e^{sZ_j}\big] \le m\,e^{s^2\sigma^2/2}.
+# $$
+# (The maximum of non-negative numbers is at most their sum; this is the union bound in disguise, and requires no independence.) Taking logarithms and dividing by $s$,
+# $$
+# \mathbb{E}\big[\max_j Z_j\big] \le \frac{\ln m}{s} + \frac{s\sigma^2}{2}.
+# $$
+# The right-hand side is minimized at $s = \sqrt{2\ln m}/\sigma$, where it equals $\sigma\sqrt{2\ln m}$. (For $m = 1$ the bound is $0$, which also follows from $s \to 0$.)
+#
+# (b) Let $Z_j = \mu - \hat{R}_j = \tfrac1n\sum_{i=1}^n(\mu - \ell_{ji})$ be an average of $n$ independent centered variables, where each term $(\mu - \ell_{ji})/n$ lies in an interval of length $1/n$. By Hoeffding's lemma each term has $\mathbb{E}[e^{s(\mu - \ell_{ji})/n}] \le e^{s^2/(8n^2)}$, and the product of the $n$ independent factors is $\mathbb{E}[e^{sZ_j}] \le e^{s^2/(8n)}$, which is the hypothesis of (a) with $\sigma^2 = 1/(4n)$. Hence
+# $$
+# \mathbb{E}\big[\mu - \min_j\hat{R}_j\big] = \mathbb{E}\big[\max_j Z_j\big] \le \sqrt{\tfrac{1}{4n}}\sqrt{2\ln m} = \sqrt{\frac{\ln m}{2n}},
+# $$
+# the thin curves of Figure 3.4. Observe that independence *across candidates* was never used: the bound holds even if the $m$ candidates are strongly correlated (in that case it is just less tight). Only the *number* of candidates enters, through a logarithm, which is why we can afford enormous finite classes: $10^6$ candidates cost only $\sqrt{13.8/(2n)}$.
+#
+# ### Python exercises
+
+# %%
+def solution_3_6():
+    from scipy import stats
+
+    Sigma = np.array([[1.0, 0.5], [0.5, 1.0]])
+    mu0, mu1 = np.array([0.0, 0.0]), np.array([2.0, 1.0])
+
+    # (a) direction and threshold of the Bayes classifier (equal priors, equal covariances)
+    w = np.linalg.solve(Sigma, mu1 - mu0)
+    threshold = w @ (mu0 + mu1) / 2
+    print(f"(a) w = {w.round(4)}, threshold = {threshold:.4f}: predict class 1 when w'x > threshold")
+
+    # (b) Bayes risk from the Mahalanobis distance
+    delta = np.sqrt((mu1 - mu0) @ w)
+    print(f"(b) Delta = {delta:.4f}, Bayes risk Phi(-Delta/2) = {stats.norm.cdf(-delta / 2):.4f}")
+
+    # (c) Monte Carlo
+    rng = np.random.default_rng(SEED)
+    n = 1_000_000
+    y = rng.integers(0, 2, size=n)
+    X = rng.multivariate_normal([0, 0], Sigma, size=n) + np.where(y[:, None] == 1, mu1, mu0)
+    err_bayes = np.mean((X @ w > threshold) != y)
+    print(f"(c) Monte Carlo risk of the Bayes classifier, n = 10^6: {err_bayes:.4f}")
+
+    # (d) classifiers that use a single feature (threshold at the midpoint of the two means of that feature)
+    for j in range(2):
+        pred = X[:, j] > (mu0[j] + mu1[j]) / 2
+        theory = stats.norm.cdf(-abs(mu1[j] - mu0[j]) / (2 * np.sqrt(Sigma[j, j])))
+        print(f"(d) feature x{j + 1} alone: Monte Carlo {np.mean(pred != y):.4f}, theory Phi(-|dmu|/(2 sigma)) = {theory:.4f}")
+
+    # Why x2 adds nothing: E[x2 | x1] is the same line in both classes
+    slope = Sigma[0, 1] / Sigma[0, 0]
+    for k, mu in enumerate((mu0, mu1)):
+        print(f"E[x2 | x1, class {k}] = {mu[1] - slope * mu[0]:.1f} + {slope:.1f} x1")
+
+
+solution_3_6()
+
+# %% [markdown]
+# (a) For equal covariances and equal priors the Bayes classifier is linear: $\mathbf{w} = \boldsymbol\Sigma^{-1}(\boldsymbol\mu_1 - \boldsymbol\mu_0) = (2, 0)^\top$ and the threshold is $\mathbf{w}^\top(\boldsymbol\mu_0 + \boldsymbol\mu_1)/2 = 2$: predict class 1 when $2x_1 > 2$, that is $x_1 > 1$. The classifier **does not use $x_2$ at all**. (b) $\Delta^2 = \mathbf{w}^\top(\boldsymbol\mu_1 - \boldsymbol\mu_0) = 4$, so $R^\ast = \Phi(-1) = 0.1587$, and (c) the Monte Carlo value $0.1590$ agrees within the sampling error (about $0.0004$ for $10^6$ points).
+#
+# (d) The feature $x_1$ alone reaches the Bayes risk, $0.1587$; the feature $x_2$ alone gives $\Phi(-0.5) = 0.3085$, which is much better than chance. Both facts are consistent: $x_2$ *is* informative by itself, because it is correlated with $x_1$ and the class shifts both means, but **given $x_1$ it adds nothing**, since the conditional mean $\mathbb{E}[x_2 \mid x_1] = 0.5\,x_1$ is the same line in the two classes. This is the first example of a principle that will return in feature selection (Chapter 10): the usefulness of a feature depends on which other features are already available.
+
+# %%
+def solution_3_7():
+    rng = np.random.default_rng(SEED)
+    sigma = 0.3
+
+    def draw(n):
+        x = rng.uniform(0, 1, n)
+        return x, np.sin(2 * np.pi * x) + rng.normal(0, sigma, n)
+
+    x_big, y_big = draw(100_000)
+    x_test, y_test = draw(100_000)
+    rows = []
+    for m in (1, 3, 6):
+        f_H = np.polyfit(x_big, y_big, m)
+        risk_H = np.mean((y_test - np.polyval(f_H, x_test)) ** 2)
+        approx = risk_H - sigma ** 2
+        for n in (30, 300):
+            risks = []
+            for _ in range(300):
+                x, y = draw(n)
+                coef = np.polyfit(x, y, m)
+                risks.append(np.mean((y_test - np.polyval(coef, x_test)) ** 2))
+            rows.append({"degree m": m, "n": n, "R(f_H)": risk_H, "approximation": approx,
+                         "E[R(f_S)]": np.mean(risks), "estimation": np.mean(risks) - risk_H,
+                         "median R(f_S)": np.median(risks)})
+    table = pd.DataFrame(rows)
+    print(f"Bayes risk R* = {sigma ** 2:.4f}")
+    print(table.round(4).to_string(index=False))
+
+
+solution_3_7()
+
+# %% [markdown]
+# The approximation errors are $0.193$ for lines ($m = 1$, a sine period cannot be fitted by a line), $0.004$ for cubics and about zero for $m = 6$ (the value $-0.0001$ is a Monte Carlo error; the sine is almost exactly a degree-6 polynomial on $[0, 1]$). The estimation error is the opposite: it is largest for the richest class and shrinks with $n$.
+#
+# At $n = 30$ the best degree is $m = 3$ (mean risk $0.111$ against $0.304$ for $m = 1$ and $0.191$ for $m = 6$), at $n = 300$ it is $m = 6$ ($0.0921$ against $0.0956$ for $m = 3$): **the best complexity grows with the sample size**, as in Figure 3.3. The mean risk of $m = 6$ at $n = 30$ is much larger than its median ($0.191$ against $0.118$): a few of the 300 samples produce a polynomial that oscillates wildly near the edges of $[0, 1]$ and has an enormous risk. This is *variance* in its purest form, a rich class reacting to the idiosyncrasies of one small sample; a degree-9 polynomial fitted to 20 points has such an extreme mean risk, dominated by a handful of samples, that the mean is meaningless. Chapter 4 formalizes it with the bias–variance decomposition.
+
+# %%
+def solution_3_8():
+    from itertools import product
+
+    def dichotomies(points, rule_family):
+        return len({tuple(rule(x) for x in points) for rule in rule_family(points)})
+
+    def half_lines(points):                       # I[x > t]: thresholds between consecutive points
+        cuts = np.concatenate(([points[0] - 1], (points[:-1] + points[1:]) / 2, [points[-1] + 1]))
+        return [lambda x, t=t: int(x > t) for t in cuts]
+
+    def interval_complements(points):             # I[x < a or x > b]
+        cuts = np.concatenate(([points[0] - 1], (points[:-1] + points[1:]) / 2, [points[-1] + 1]))
+        return [lambda x, a=a, b=b: int(x < a or x > b) for a in cuts for b in cuts if a <= b]
+
+    print(" n | half-lines | n+1 | complements of intervals | n(n+1)/2+1")
+    for n in range(1, 9):
+        pts = np.arange(n, dtype=float)
+        print(f"{n:>2} | {dichotomies(pts, half_lines):>10} | {n + 1:>3} | {dichotomies(pts, interval_complements):>24} | {n * (n + 1) // 2 + 1:>10}")
+
+    # (b) sign(sin(omega x)) shatters x_j = 10^-j
+    m = 6
+    x = 10.0 ** -np.arange(1, m + 1)
+    ok = 0
+    for labels in product([-1, 1], repeat=m):
+        b = (1 - np.array(labels)) / 2
+        omega = np.pi * (1 + np.sum(b * 10.0 ** np.arange(1, m + 1)))
+        ok += np.all(np.sign(np.sin(omega * x)) == np.array(labels))
+    print(f"\nsign(sin(omega x)) reproduces {ok} of {2 ** m} labelings of the {m} points x_j = 10^-j")
+
+
+solution_3_8()
+
+# %% [markdown]
+# (a) For $n$ distinct points on a line the half-lines produce $n + 1$ dichotomies (the threshold falls in one of the $n + 1$ gaps), so $\Pi(n) = n + 1$; since $\Pi(2) = 3 < 2^2$, no pair of points is shattered and $d_{\mathrm{VC}} = 1$. The complements of intervals produce $n(n + 1)/2 + 1$ dichotomies, exactly as the intervals do: the points labeled 0 form a contiguous block, which is empty or one of the $n(n+1)/2$ possible blocks. For $n = 2$ all four labelings are possible, but for $n = 3$ the labeling $(0, 1, 0)$ is not (its zeros are not contiguous), so $\Pi(3) = 7 < 8$ and $d_{\mathrm{VC}} = 2$. Both counts agree with the output above.
+#
+# (b) The table confirms that all $2^6 = 64$ labelings of $x_j = 10^{-j}$ are reproduced by $\mathrm{sign}(\sin(\omega x))$ with the prescribed $\omega$. The proof for general $m$ is the one outlined in the hint: for $i > j$ the term $\pi b_i 10^{i-j}$ is an even multiple of $\pi$ (it is $\pi$ times a multiple of 10) and does not change the sign of the sine; the term $i = j$ gives $\pi b_j$; the terms with $i < j$ add up to less than $\pi/5$ and the term $\pi 10^{-j}$ is smaller still. So the argument of the sine lies in $(\pi b_j, \pi b_j + \pi/2) \bmod 2\pi$, where the sign is $+$ for $b_j = 0$ and $-$ for $b_j = 1$. A class with a single parameter can therefore shatter arbitrarily large sets: the **number of parameters is not the capacity**.
+
+# %%
+def solution_3_9():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.preprocessing import StandardScaler
+
+    rng = np.random.default_rng(SEED)
+    X30 = StandardScaler().fit_transform(load_breast_cancer().data)[rng.choice(569, 100, replace=False)]
+    n = 100
+    sigmas = rng.choice([-1.0, 1.0], size=(2000, n))
+    rows = []
+    for d in (30, 100, 300, 1000, 3000):
+        X = np.hstack([X30, rng.normal(size=(n, d - 30))])
+        S = sigmas @ X                                                   # 2000 x d: the sums sum_i sigma_i x_ij
+        r2 = np.mean(np.linalg.norm(S, axis=1)) / n
+        r1 = np.mean(np.max(np.abs(S), axis=1)) / n
+        b2 = np.sqrt(np.sum(X ** 2)) / n
+        b1 = np.max(np.linalg.norm(X, axis=0)) * np.sqrt(2 * np.log(2 * d)) / n
+        rows.append({"d": d, "l2 ball": r2, "bound l2": b2, "l1 ball": r1, "bound l1": b1})
+    table = pd.DataFrame(rows)
+    print(table.round(4).to_string(index=False))
+    print(f"\nl2 complexity grows by a factor {table['l2 ball'].iloc[-1] / table['l2 ball'].iloc[0]:.2f} from d = 30 to d = 3000 "
+          f"(sqrt(3000/30) = {np.sqrt(100):.0f});")
+    print(f"l1 complexity grows by a factor {table['l1 ball'].iloc[-1] / table['l1 ball'].iloc[0]:.2f}")
+
+
+solution_3_9()
+
+# %% [markdown]
+# The $\ell_2$ complexity grows like $\sqrt{d}$ (a factor 10.5 from $d = 30$ to $d = 3000$, against $\sqrt{100} = 10$) and the bound $\sqrt{\sum_i\lVert\mathbf{x}_i\rVert^2}/n$ is nearly exact, because the squared norms of the rows are dominated by the $d - 30$ noise coordinates, whose squares add up to about $d$ per row. The point of Proposition 3.6 is that the bound depends on the *norm* of the data and not on the dimension: if the norm grows with $d$, as it does when we append noise columns, so does the bound, and **bounding $\lVert\mathbf{w}\rVert_2 \le 1$ does not protect against a large number of irrelevant features of order 1 each**. The $\ell_1$ complexity grows only by a factor of 2, as $\sqrt{\ln 2d}$ (the maximum over $2d$ signed columns, each of which behaves like a Gaussian with the same variance proxy) and the bound follows with a small slack (ratio between 1.4 and 2). This is the mathematical reason why $\ell_1$ regularization (Lasso, Chapter 10) works well when there are many irrelevant features, *provided that the true weight vector has a small $\ell_1$ norm*, that is, that it is sparse.
+
+# %%
+def solution_3_10():
+    from scipy import stats
+
+    rng = np.random.default_rng(SEED)
+    z = stats.norm.ppf(0.975)
+    reps = 20_000
+    rows = []
+    for p in (0.03, 0.2):
+        for m in (20, 50, 200):
+            K = rng.binomial(m, p, size=reps)
+            ph = K / m
+            hoeff = np.sqrt(np.log(2 / 0.05) / (2 * m)) * np.ones(reps)
+            wald = z * np.sqrt(ph * (1 - ph) / m)
+            centre = (ph + z ** 2 / (2 * m)) / (1 + z ** 2 / m)
+            half_w = z * np.sqrt(ph * (1 - ph) / m + z ** 2 / (4 * m ** 2)) / (1 + z ** 2 / m)
+            for name, lo, hi in [("Hoeffding", ph - hoeff, ph + hoeff), ("Wald", ph - wald, ph + wald),
+                                 ("Wilson", centre - half_w, centre + half_w)]:
+                rows.append({"p": p, "m": m, "interval": name, "coverage": np.mean((lo <= p) & (p <= hi)),
+                             "mean width": np.mean(hi - lo)})
+    table = pd.DataFrame(rows).pivot(index=["p", "m"], columns="interval", values=["coverage", "mean width"])
+    print(table.round(3).to_string())
+
+
+solution_3_10()
+
+# %% [markdown]
+# **Hoeffding's interval is valid but very conservative**: its coverage is 1.000 (or 0.999) in every row, much above the nominal 0.95, and it is two to five times wider than the others (a half-width of 0.30 for $m = 20$, which is useless for estimating an error rate of 0.03). **The Wald interval fails where it matters:** for a small error rate and a small test set its coverage is only 0.46 ($p = 0.03$, $m = 20$) and 0.78 ($m = 50$), because when $K = 0$ it collapses to a point and in general it relies on a normal approximation that is not accurate for $mp < 5$. For $p = 0.2$ and $m \ge 50$ it is fine. **The Wilson interval** has coverage close to 0.95 in all cases (0.937 to 0.979) and a width that is similar to the Wald interval where the latter works and larger where the Wald fails. It is the interval to report in practice; the Clopper–Pearson interval (`method="exact"`) is a conservative alternative that guarantees coverage at least 0.95 at the price of being slightly wider. Hoeffding's interval remains the right tool when a *guaranteed* statement without any approximation is needed, and as the formula to plan the size of a test set in advance.

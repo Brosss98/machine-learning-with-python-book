@@ -38,6 +38,7 @@ project:
         - file: chapters/ch01_what_is_machine_learning.ipynb
         - file: chapters/ch01_setup_guide.md
         - file: chapters/ch02_python_math_toolkit.ipynb
+        - file: chapters/ch03_statistical_learning_theory.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb
