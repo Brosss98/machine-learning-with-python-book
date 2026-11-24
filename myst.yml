@@ -44,6 +44,7 @@ project:
         - file: chapters/ch04_local_methods_knn_bias_variance.ipynb
         - file: chapters/ch05_model_evaluation_cv_tuning.ipynb
         - file: chapters/ch06_linear_models_regularization.ipynb
+        - file: chapters/ch07_optimization_gd_sgd.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb

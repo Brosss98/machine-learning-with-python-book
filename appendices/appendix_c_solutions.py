@@ -1837,3 +1837,412 @@ solution_6_10()
 # The best $C$ is remarkably stable. The oracle value (the one that minimizes the test log-loss) is $C = 1$ for every $n$, and so is the median value chosen by cross-validation for $n \ge 60$; only for $n = 30$ is the CV choice erratic (median 20.8): with 30 patients the cross-validated log-loss is a noisy criterion, the winner's-curse effect of Chapter 5. Since $\lambda = 1/(Cn)$, a constant $C$ means that **the best penalty decreases like $1/n$**: $0.0167$, $0.0083$ and $0.0042$ for $n = 60, 120, 240$. In the formulation of Section 6.5, with the loss averaged over the examples, the right strength of the penalty falls as the training set grows, while in the formulation of scikit-learn ($C$ multiplies the *sum* of the losses) it stays the same. This is the quantitative form of the principle that more data can support a more flexible model.
 #
 # The test log-loss of the model selected by cross-validation decreases from 0.214 to 0.094, and the gap to the oracle shrinks from 0.07 to 0.006 as $n$ grows. The unpenalized model is much worse and does not improve with $n$ (0.387, 0.387, 0.483 and 0.846): with 30 standardized features the training sets are separable, and the solver stops at the iteration limit with large weights and overconfident probabilities (Section 6.4.4); its figures reflect the optimizer's stopping rule, not a property of the model.
+
+# %% [markdown]
+# ## C.7 Chapter 7
+#
+# ### Manual exercises
+#
+# **Solution 7.1 — Gradient descent by hand.**
+#
+# (a) $\nabla f = (2w_1, 8w_2)$ and $\mathbf{H} = \mathrm{diag}(2, 8)$, so $\mu = 2$, $L = 8$, $\kappa = 4$, and the minimizer is $\mathbf{w}^\ast = \mathbf{0}$.
+#
+# (b) With $\eta = 1/L = \tfrac18$ the factors are $1 - \tfrac18\cdot 2 = \tfrac34$ and $1 - \tfrac18\cdot 8 = 0$, so $\mathbf{w}_k = (4\cdot(\tfrac34)^k,\ 0)$ for $k \ge 1$: the iterates are $(3, 0)$, $(2.25, 0)$, $(1.6875, 0)$. The steepest direction is solved in one step (its factor is zero) and the flat one decays like $\tfrac34$ per step, the rate $1 - 1/\kappa$ of Theorem 7.3.
+#
+# (c) The best step is $\eta^\ast = 2/(L + \mu) = 0.2$, with factors $1 - 0.4 = 0.6$ and $1 - 1.6 = -0.6$: the rate is $\rho = 0.6 = (\kappa - 1)/(\kappa + 1) = \tfrac35$, and both coordinates are multiplied by $\pm 0.6$. The iterates are $(2.4, -0.6)$, $(1.44, 0.36)$, $(0.864, -0.216)$. The step $\eta^\ast$ balances the two directions: the flat one converges from one side and the steep one overshoots to the other, by the same factor.
+#
+# (d) The iteration converges for $0 < \eta < 2/L = \tfrac14$. For $\eta = \tfrac14$ the factors are $\tfrac12$ and $-1$: $\mathbf{w}_k = (4\cdot 0.5^k,\ (-1)^k)$, which gives $(2, -1)$, $(1, 1)$, $(0.5, -1)$: the first coordinate converges, the second oscillates forever between $\pm 1$, so the iteration does not converge (it is the boundary case of Theorem 7.3, item 1).
+#
+# **Solution 7.2 — The smoothness constant of a logistic regression.**
+#
+# (a) With $s = \sigma(m)$, $\ell'(m) = -\sigma(-m)$ and $\ell''(m) = \sigma(m)\sigma(-m) = s(1 - s)$. Since $s \in (0, 1)$, $s(1 - s) \le \tfrac14$ (the maximum, at $s = \tfrac12$, i.e. $m = 0$), and it is positive. The Hessian of the objective is $\frac1n\tilde{\mathbf{X}}^\top\mathrm{diag}(\ell''(m_i))\tilde{\mathbf{X}} + \lambda\,\mathrm{diag}(\text{penalized coordinates}) \preceq \frac1{4n}\tilde{\mathbf{X}}^\top\tilde{\mathbf{X}} + \lambda\mathbf{I}$ (the signs $2y_i - 1 = \pm 1$ disappear in the squares), whose largest eigenvalue is $\lVert\tilde{\mathbf{X}}\rVert_2^2/(4n) + \lambda$.
+#
+# (b) For the rows $(1, -1), (1, 0), (1, 1)$ we get $\tilde{\mathbf{X}}^\top\tilde{\mathbf{X}} = \mathrm{diag}(3, 2)$, so $\lVert\tilde{\mathbf{X}}\rVert_2^2 = 3$ and $L = 3/(4\cdot 3) = \tfrac14$. At the origin all the scores vanish, $\ell'' = \tfrac14$ for every example, and the Hessian is exactly $\frac1{12}\,\mathrm{diag}(3, 2) = \mathrm{diag}(\tfrac14, \tfrac16)$: its largest eigenvalue is $\tfrac14 = L$. The bound is tight at the origin and is loose elsewhere (Section 7.3.4: fourteen times too large at the minimizer of the Breast Cancer problem).
+#
+# (c) At the origin $\mathbf{p} - \mathbf{y} = (\tfrac12, -\tfrac12, -\tfrac12)$ and $\nabla f = \frac13\tilde{\mathbf{X}}^\top(\mathbf{p} - \mathbf{y}) = \frac13(-\tfrac12,\ -1) = (-\tfrac16, -\tfrac13)$. With $\eta = 1/L = 4$, $\mathbf{w}_1 = (0, 0) + 4(\tfrac16, \tfrac13) = (\tfrac23, \tfrac43)$. The loss at the origin is $\log 2 = 0.6931$. At $\mathbf{w}_1$ the scores are $-\tfrac23, \tfrac23, 2$ and the mean loss is $\frac13[\log(1 + e^{-2/3}) + \log(1 + e^{-2/3}) + \log(1 + e^{-2})] = \frac13(0.4144 + 0.4144 + 0.1269) = 0.3186$. The descent lemma with $\eta = 1/L$ guarantees $f(\mathbf{w}_1) \le f(\mathbf{w}_0) - \frac1{2L}\lVert\nabla f(\mathbf{w}_0)\rVert^2 = 0.6931 - 2\cdot(\tfrac1{36} + \tfrac19) = 0.6931 - 0.2778 = 0.4153$. The actual value $0.3186$ satisfies the inequality, with a decrease of $0.3745$ against the guaranteed $0.2778$.
+#
+# **Solution 7.3 — The heavy ball on a quadratic.**
+#
+# (a) $\kappa = 100$. The best step is $2/(L + \mu) = 2/101$ with $\rho = 99/101 = 0.9802$, and $\rho^k = 10^{-6}$ gives $k = \ln 10^6/\ln(101/99) = 690.8$, so about $691$ iterations (equal to $\frac\kappa2\ln 10^6 = 50\cdot 13.82$, the bound of Theorem 7.3, item 4).
+#
+# (b) $\sqrt L + \sqrt\mu = 11$, so $\eta = 4/121 = 0.0331$, $\beta = (9/11)^2 = 0.6694$ and $\rho = \sqrt\beta = 9/11 = 0.8182$. Then $k = \ln 10^6/\ln(11/9) = 68.8$: about $69$ iterations, ten times fewer, the factor $\sqrt\kappa = 10$ of the theory.
+#
+# (c) For $\lambda = \mu = 1$: $1 + \beta - \eta\mu = 1 + 0.6694 - 0.0331 = 1.6364 = 2\cdot\tfrac9{11}$, so $z^2 - \tfrac{18}{11}z + (\tfrac9{11})^2 = (z - \tfrac9{11})^2$: a double root $\tfrac9{11} = \sqrt\beta$. For $\lambda = L = 100$: $1 + \beta - 100\eta = 1.6694 - 3.3058 = -1.6364$, so $z^2 + \tfrac{18}{11}z + (\tfrac9{11})^2 = (z + \tfrac9{11})^2$: a double root $-\tfrac9{11}$, of modulus $\sqrt\beta$. For the eigenvalues between the two the roots are complex conjugates of modulus exactly $\sqrt\beta$ (the product of the roots is $\beta$), so every direction contracts at the same rate $\sqrt\beta$ and the double roots at the two ends produce the factor $(k + 1)$ of Theorem 7.8.
+#
+# **Solution 7.4 — SGD for a mean.**
+#
+# (a) The update is $w_{k+1} = w_k - \eta_k(w_k - x_k) = (1 - \eta_k)w_k + \eta_kx_k$. With $\eta_k = 1/(k + 1)$: $\eta_0 = 1$ gives $w_1 = x_0$, and then $(k + 1)w_{k+1} = kw_k + x_k$, so $kw_k = x_0 + \dots + x_{k-1}$: $w_k$ is the sample mean of the first $k$ observations. Its variance is $\sigma^2/k$, and since $f(w) - f^\ast = \tfrac12(w - m)^2$, $\mathbb{E}f(w_k) - f^\ast = \sigma^2/(2k)$. This is the $O(1/k)$ rate of Theorem 7.12, and it is attained exactly: no step schedule can do better than the statistical error of the sample mean. The schedule $\eta_k = 1/(k + 1)$ has $\beta = 1/\mu$ and $\gamma = 1$, the limiting case of the hypothesis $\beta > 1/\mu$ of the theorem, for which its constant $\beta^2L\sigma^2/(2(\beta\mu - 1))$ is infinite; with $\beta = \gamma = 2$ ($\eta_k = 2/(k + 2)$) the theorem gives $\nu = \max\{2\sigma^2, 2(f(w_0) - f^\ast)\}$, of the same order $\sigma^2/k$ but with a larger constant.
+#
+# (b) Write $w_{k+1} - m = (1 - \eta)(w_k - m) + \eta(x_k - m)$. The two terms are independent, so $V_{k+1} = (1 - \eta)^2V_k + \eta^2\sigma^2$, which converges for $\lvert 1 - \eta\rvert < 1$ to $V_\infty = \eta^2\sigma^2/(1 - (1 - \eta)^2) = \eta\sigma^2/(2 - \eta)$. Then $\mathbb{E}f - f^\ast = \tfrac12V_\infty = \eta\sigma^2/(2(2 - \eta))$, against the floor $L\eta\sigma^2/(2\mu) = \eta\sigma^2/2$ of Theorem 7.11: the floor overestimates the true one by the factor $2 - \eta \in [1, 2)$.
+#
+# (c) For $\eta = 0.1$, $\sigma^2 = 1$: exact $0.1/(2\cdot 1.9) = 0.02632$, floor $0.05$, ratio $1.9$. The theorem is within a factor of two of the truth in this case, and the exact floor is proportional to $\eta$, as the theorem says.
+#
+# **Solution 7.5 — Early stopping and ridge in two directions.**
+#
+# (a) $\varphi_1(k) = 1 - (1 - 1)^k = 1$ for every $k \ge 1$ and $\varphi_2(k) = 1 - 0.99^k$.
+#
+# (b) The ridge factor with $\lambda = 1/(\eta k) = 1/k$ is $h_j/(h_j + 1/k)$:
+#
+# | $k$ | $\varphi_2(k) = 1 - 0.99^k$ | ridge $0.01/(0.01 + 1/k)$ | ratio |
+# |---|---|---|---|
+# | 1 | 0.0100 | 0.0099 | 1.010 |
+# | 10 | 0.0956 | 0.0909 | 1.052 |
+# | 100 | 0.6340 | 0.5000 | 1.268 |
+# | 1000 | 0.99996 | 0.9091 | 1.100 |
+#
+# (c) We need $1 - 0.99^k \ge \tfrac12$, that is $k \ge \ln 2/(-\ln 0.99) = 68.97$, so $k = 69$. The ridge factor is $\tfrac12$ exactly when $\lambda = h_2 = 0.01$, which corresponds to $k = 1/(\eta\lambda) = 100$ in the correspondence $\lambda = 1/(\eta k)$: gradient descent recovers the second direction half way a little *earlier* than the correspondence predicts, as the ratio $1.27 > 1$ at $k = 100$ shows.
+#
+# (d) All the ratios of (b) lie between $1$ and $2$. For the first direction the ridge factor is $k/(k + 1)$ and the ratio is $(k + 1)/k$: $2$ at $k = 1$ (the upper bound of Proposition 7.13 is attained), $1.1$ at $k = 10$, and tends to $1$. For the second direction the ratio never exceeds $1.27$ in the table. Both factors increase from $0$ to $1$ together, which is the content of the proposition: stopping at $k$ steps and ridge with $\lambda = 1/(\eta k)$ filter the same directions to within a factor of two.
+#
+# ### Python exercises
+
+# %%
+def solution_7_6():
+    from sklearn.datasets import load_diabetes
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    diab = load_diabetes()
+    Xtr, _, ytr, _ = train_test_split(diab.data, diab.target, test_size=0.25, random_state=SEED)
+    Z = StandardScaler().fit_transform(Xtr)
+    n = len(ytr)
+    yc = ytr - ytr.mean()
+
+    def objective(w, lam):
+        r = Z @ w - yc
+        return 0.5 * np.mean(r**2) + 0.5 * lam * w @ w, Z.T @ r / n + lam * w
+
+    # (a) gradient check by central differences
+    rng = np.random.default_rng(SEED)
+    w_try = rng.normal(size=Z.shape[1])
+    g_fd = np.array([(objective(w_try + 1e-6 * e, 0.1)[0] - objective(w_try - 1e-6 * e, 0.1)[0]) / 2e-6 for e in np.eye(Z.shape[1])])
+    g_an = objective(w_try, 0.1)[1]
+    print(f"(a) relative error of the gradient: {np.linalg.norm(g_an - g_fd) / np.linalg.norm(g_fd):.1e}")
+
+    rows = []
+    for lam in [0.0, 0.01, 0.1, 1.0]:
+        H = Z.T @ Z / n + lam * np.eye(Z.shape[1])
+        ev = np.linalg.eigvalsh(H)
+        L, mu = ev[-1], ev[0]
+        w_star = np.linalg.solve(H, Z.T @ yc / n)
+        w = np.zeros(Z.shape[1])
+        k = 0
+        while np.linalg.norm(w - w_star) > 1e-6 * np.linalg.norm(w_star) and k < 200_000:
+            w = w - objective(w, lam)[1] / L
+            k += 1
+        rows.append({"lambda": lam, "L": L, "mu": mu, "kappa": L / mu, "iterations": k, "kappa ln(1e6)": L / mu * np.log(1e6)})
+    df = pd.DataFrame(rows)
+    print(df.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    slope, intercept = np.polyfit(np.log(df["kappa"]), np.log(df["iterations"]), 1)
+    print(f"(d) slope of log(iterations) against log(kappa): {slope:.2f}")
+    fig, ax = plt.subplots(figsize=(5.6, 3.8))
+    ax.loglog(df["kappa"], df["iterations"], "o-", color=BLUE, label="measured")
+    ax.loglog(df["kappa"], df["kappa ln(1e6)"], "s--", color=VERMILION, label=r"$\kappa\ln 10^6$")
+    ax.set(xlabel=r"condition number $\kappa$", ylabel="iterations", title="Gradient descent on Diabetes, $\\eta = 1/L$")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_7_6()
+
+# %% [markdown]
+# The iteration counts follow the condition number almost proportionally: $5{,}677$, $2{,}676$, $426$ and $44$ iterations for $\kappa = 417.8$, $202.7$, $36.7$ and $4.9$, against $\kappa\ln 10^6 = 5{,}773$, $2{,}801$, $508$ and $67$. The bound of Theorem 7.3 is nearly attained for $\lambda = 0$ and $0.01$ ($98\%$ and $96\%$) and loose by about a third for $\lambda = 1$: the bound is the worst case, in which the starting error lies entirely along the flattest direction, and the measured count is smaller when the weight of $\mathbf{w}^\ast$ on that direction is only a part of $\lVert\mathbf{w}^\ast\rVert$. Because the ratio of measured count to bound is not constant, the slope of the log-log fit is $1.09$ and not exactly $1$. The gradient check gives a relative error of $7 \cdot 10^{-9}$. A ridge penalty of $\lambda = 1$ makes the problem $85$ times better conditioned than least squares and the descent $130$ times faster, the practical face of the remark of Section 7.2.2 that regularization helps the optimization as well as the statistics.
+
+
+
+# %%
+def solution_7_7():
+    from scipy.optimize import minimize
+    from scipy.special import expit
+    from sklearn.datasets import load_iris
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    iris = load_iris()
+    mask = iris.target > 0                                     # versicolor (0) against virginica (1)
+    X, y = iris.data[mask], (iris.target[mask] == 2).astype(float)
+    Xtr, _, ytr, _ = train_test_split(X, y, test_size=0.25, random_state=SEED, stratify=y)
+    Z = StandardScaler().fit_transform(Xtr)
+    A = np.c_[np.ones(len(ytr)), Z]
+    n, p = A.shape
+    lam = 0.01
+    pen = np.r_[0.0, np.ones(p - 1)]
+
+    def obj(w):
+        s = A @ w
+        return np.mean(np.logaddexp(0, s) - ytr * s) + 0.5 * lam * np.sum(pen * w**2), A.T @ (expit(s) - ytr) / n + lam * pen * w
+
+    def hess(w):
+        q = expit(A @ w)
+        return (A.T * (q * (1 - q))) @ A / n + lam * np.diag(pen)
+
+    w = np.zeros(p)
+    for _ in range(30):
+        w = w - np.linalg.solve(hess(w), obj(w)[1])
+    w_star, f_star = w, obj(w)[0]
+    L_glob = np.linalg.eigvalsh(A.T @ A / n)[-1] / 4 + lam
+    ev = np.linalg.eigvalsh(hess(w_star))
+    L_loc, mu_loc = ev[-1], ev[0]
+    print(f"(a) f* = {f_star:.8f}; L_glob = {L_glob:.4f}; local L = {L_loc:.4f}, mu = {mu_loc:.4f}; L_glob/L_loc = {L_glob / L_loc:.1f}")
+
+    def gd(eta, iters=4000):
+        w, gaps = np.zeros(p), []
+        for _ in range(iters):
+            f, g = obj(w)
+            gaps.append(f - f_star)
+            w = w - eta * g
+        return np.array(gaps)
+
+    def first_below(gaps, tol=1e-8):
+        above = np.flatnonzero(gaps >= tol)
+        k = int(above[-1]) + 1 if len(above) else 0
+        return k if k < len(gaps) else None
+
+    curves = {"GD, 1/L_glob": gd(1 / L_glob)}
+    best_eta, best_k = None, None
+    for eta in np.linspace(1 / L_glob, 4 / L_loc, 60):
+        k = first_below(gd(eta))
+        if k is not None and (best_k is None or k < best_k):
+            best_eta, best_k = eta, k
+    curves[f"GD, eta = {best_eta:.2f}"] = gd(best_eta)
+    # backtracking (Armijo, halving; the step is multiplied by 2 at the start of each iteration)
+    w, eta, gaps_bt, n_grad = np.zeros(p), 1.0, [], 0
+    for _ in range(4000):
+        f, g = obj(w)
+        gaps_bt.append(f - f_star)
+        if gaps_bt[-1] < 1e-14:
+            break
+        eta *= 2
+        while obj(w - eta * g)[0] > f - 0.5 * eta * g @ g:
+            eta /= 2
+        w = w - eta * g
+    curves["backtracking"] = np.array(gaps_bt)
+    # L-BFGS
+    hist, count = [], [0]
+    def fun(v):
+        count[0] += 1
+        return obj(v)
+    minimize(fun, np.zeros(p), jac=True, method="L-BFGS-B", callback=lambda v: hist.append((obj(v)[0] - f_star, count[0])),
+             options={"maxiter": 500, "gtol": 1e-12, "ftol": 1e-16})
+    hist = np.array(hist)
+    k_lb = int(np.flatnonzero(hist[:, 0] < 1e-8)[0])
+    curves["L-BFGS"] = hist[:, 0]
+    # Newton
+    w, gaps_nt = np.zeros(p), []
+    for _ in range(10):
+        f, g = obj(w)
+        gaps_nt.append(f - f_star)
+        w = w - np.linalg.solve(hess(w), g)
+    curves["Newton"] = np.array(gaps_nt)
+
+    print(f"(b)-(c) gradient evaluations to a gap below 1e-8:")
+    print(f"   GD 1/L_glob: {first_below(curves['GD, 1/L_glob'])};  GD best constant ({best_eta:.2f}): {best_k};  backtracking: {first_below(curves['backtracking'])};  "
+          f"L-BFGS: {int(hist[k_lb, 1])} ({k_lb + 1} iterations);  Newton: {int(np.flatnonzero(np.array(gaps_nt) < 1e-8)[0])} steps")
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    for (name, c), color, ls in zip(curves.items(), [BLUE, GREEN, ORANGE, PURPLE, VERMILION], ["-", "-", "-", "--", "--"]):
+        ax.plot(np.maximum(c, 1e-16), color=color, ls=ls, lw=2, label=name)
+    ax.set(yscale="log", xlim=(0, 400), ylim=(1e-12, 1), xlabel="iteration", ylabel=r"suboptimality $f - f^\ast$",
+           title="Iris, versicolor against virginica")
+    ax.legend(frameon=False, fontsize=9)
+    fig.tight_layout()
+    plt.show()
+
+
+solution_7_7()
+
+# %% [markdown]
+# On this problem, versicolor against virginica, the two classes overlap (an unpenalized near-hard-margin classifier misclassifies two of the $75$ training flowers and the unpenalized logistic fit has a finite norm), so the penalty $\lambda = 0.01$ is not needed for existence, only for conditioning. The minimum is $f^\ast = 0.15264447$; the global bound is $L_{\text{glob}} = 0.757$, the curvature at the minimizer is $L_{\text{loc}} = 0.0625$ (with $\mu_{\text{loc}} = 0.0136$), a ratio of $12.1$. The numbers of gradient evaluations to reach a suboptimality of $10^{-8}$ are: gradient descent with $\eta = 1/L_{\text{glob}}$, $217$; with the best constant step found in the search, $\eta = 25.8$ (the stability limit is $2/L_{\text{loc}} = 32$), $15$; backtracking, $11$; L-BFGS, $10$ evaluations ($9$ iterations); Newton, $6$ steps. The gain of the best constant step, $217/15 = 14.5$, is of the order of the ratio $L_{\text{glob}}/L_{\text{loc}} = 12.1$, as in the Breast Cancer experiment of Section 7.3.4 (where the best constant step gained $1631/65 = 25$ against a ratio of $14.4$): the loss of a method that obeys the global bound is the ratio between the worst and the local curvature. The curves of the three first-order methods are straight lines on the logarithmic scale (linear convergence), those of L-BFGS and Newton bend downward (superlinear and quadratic).
+
+
+
+# %%
+def solution_7_8():
+    from sklearn.datasets import load_diabetes
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    diab = load_diabetes()
+    Xtr, _, ytr, _ = train_test_split(diab.data, diab.target, test_size=0.25, random_state=SEED)
+    Z = StandardScaler().fit_transform(Xtr)
+    n, lam = len(ytr), 0.1
+    yc = ytr - ytr.mean()
+    H = Z.T @ Z / n + lam * np.eye(Z.shape[1])
+    b = Z.T @ yc / n
+    ev = np.linalg.eigvalsh(H)
+    L, mu = ev[-1], ev[0]
+    kappa = L / mu
+    w_star = np.linalg.solve(H, b)
+    sk = np.sqrt(kappa)
+
+    def run(eta, beta, kind, iters=6000):
+        w, w_prev, dist = np.zeros(10), np.zeros(10), np.empty(iters)
+        for k in range(iters):
+            dist[k] = np.linalg.norm(w - w_star) / np.linalg.norm(w_star)
+            if not np.isfinite(dist[k]) or dist[k] > 1e12:
+                dist[k:] = np.inf
+                break
+            if kind == "hb":
+                w_new = w - eta * (H @ w - b) + beta * (w - w_prev)
+            else:
+                y = w + beta * (w - w_prev)
+                w_new = y - eta * (H @ y - b)
+            w_prev, w = w, w_new
+        return dist
+
+    def count(d, tol=1e-8):
+        above = np.flatnonzero(d >= tol)
+        k = int(above[-1]) + 1 if len(above) else 0
+        return k if k < len(d) else None
+
+    eta_hb = 4 / (np.sqrt(L) + np.sqrt(mu)) ** 2
+    beta_hb = ((sk - 1) / (sk + 1)) ** 2
+    runs = {
+        "GD, eta = 2/(L+mu)": run(2 / (L + mu), 0.0, "hb"),
+        "heavy ball (Theorem 7.8)": run(eta_hb, beta_hb, "hb"),
+        "Nesterov, strongly convex": run(1 / L, (sk - 1) / (sk + 1), "nag"),
+        "heavy ball, beta = 0.99": run(eta_hb, 0.99, "hb"),
+        "heavy ball, beta = 0": run(eta_hb, 0.0, "hb"),
+    }
+    print(f"kappa = {kappa:.2f}, sqrt(kappa) = {sk:.2f}; heavy-ball eta = {eta_hb:.3f} (2/L = {2 / L:.3f}), beta = {beta_hb:.4f}")
+    cnt = {k: count(v) for k, v in runs.items()}
+    for k, v in cnt.items():
+        print(f"  {k:<28} {v if v else 'not reached'}")
+    print(f"(a) iterations(GD) / iterations(heavy ball) = {cnt['GD, eta = 2/(L+mu)'] / cnt['heavy ball (Theorem 7.8)']:.1f}, "
+          f"iterations(GD) / iterations(Nesterov) = {cnt['GD, eta = 2/(L+mu)'] / cnt['Nesterov, strongly convex']:.1f}; sqrt(kappa) = {sk:.1f}")
+    d99 = runs["heavy ball, beta = 0.99"]
+    print(f"(b) beta = 0.99: the distance after 100, 1000, 3000 iterations is {d99[100]:.1e}, {d99[1000]:.1e}, {d99[3000]:.1e}; "
+          f"it increases at {100 * np.mean(np.diff(d99[:600]) > 0):.0f}% of the first 600 iterations (oscillation)")
+    d0 = runs["heavy ball, beta = 0"]
+    print(f"    beta = 0 keeps the heavy-ball step {eta_hb:.3f} > 2/L = {2 / L:.3f}: plain gradient descent diverges (distance above 1e12 at iteration {int(np.flatnonzero(~np.isfinite(d0))[0])})")
+    fig, ax = plt.subplots(figsize=(6.6, 4.0))
+    for (name, d), color, ls in zip(runs.items(), [BLUE, VERMILION, GREEN, ORANGE, PURPLE], ["-", "-", "-", "--", ":"]):
+        ax.plot(np.maximum(d, 1e-14), color=color, ls=ls, lw=1.8, label=name)
+    ax.set(yscale="log", xlim=(0, 1200), ylim=(1e-12, 1e3), xlabel="iteration $k$", ylabel=r"$\|\mathbf{w}_k - \mathbf{w}^\ast\| / \|\mathbf{w}^\ast\|$",
+           title="Diabetes ridge, $\\lambda = 0.1$")
+    ax.legend(frameon=False, fontsize=8, loc="lower left")
+    fig.tight_layout()
+    plt.show()
+
+
+solution_7_8()
+
+# %% [markdown]
+# With $\lambda = 0.1$ ($\kappa = 36.74$, $\sqrt\kappa = 6.06$) the counts to reach a relative distance of $10^{-8}$ are $328$ iterations for gradient descent with $\eta = 2/(L + \mu)$ (the bound $\frac\kappa2\ln 10^8 = 338$), $68$ for the heavy ball with the parameters of Theorem 7.8 ($\eta = 0.733$, $\beta = 0.514$), and $107$ for Nesterov's strongly convex version. (a) The ratios are $4.8$ and $3.1$, against $\sqrt\kappa = 6.1$: the heavy ball is not quite $\sqrt\kappa$ times faster at this moderate $\kappa$ because the error bound of Theorem 7.8 carries the factor $(k + 1)$ of the double roots (with only $\rho^k$ the ratio would be $6.1$), and Nesterov's version uses the smaller step $1/L$ and is slower still, as in Section 7.5. (b) The momentum parameter must be matched to the step. With $\beta = 0.99$ the rate falls to $\sqrt{0.99} = 0.995$, and the run needs $3{,}723$ iterations, eleven times more than plain gradient descent: the iterate overshoots and spirals toward $\mathbf{w}^\ast$ (the distance increases at $48\%$ of the first 600 iterations; it is $0.57$ after $100$ iterations, $7.7 \cdot 10^{-3}$ after $1{,}000$ and $1.9 \cdot 10^{-7}$ after $3{,}000$). With $\beta = 0$ and the heavy-ball step $\eta = 0.733$, which exceeds $2/L = 0.498$, the iteration is plain gradient descent *above its stability limit*: it diverges (the distance exceeds $10^{12}$ at iteration $43$). The step of Theorem 7.8 is stable only *together* with its momentum, which damps the oscillation of the steep directions: momentum is part of the stability of the method, not an optional accelerator.
+
+
+
+# %%
+def solution_7_9():
+    from scipy.optimize import minimize
+    from scipy.special import logsumexp
+    from sklearn.datasets import load_digits
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    dg = load_digits()
+    Xtr, Xte, ytr, yte = train_test_split(dg.data, dg.target, test_size=0.25, random_state=SEED, stratify=dg.target)
+    sc = StandardScaler().fit(Xtr)
+    Z = sc.transform(Xtr)
+    n, d = Z.shape
+    K = 10
+    Y = np.eye(K)[ytr]
+    lam = 1 / (3.16 * n)
+
+    def obj(w, idx=None):
+        W, b = w[:K * d].reshape(K, d), w[K * d:]
+        A, Yb = (Z, Y) if idx is None else (Z[idx], Y[idx])
+        S = A @ W.T + b
+        logp = S - logsumexp(S, axis=1, keepdims=True)
+        P = np.exp(logp)
+        f = -np.mean(np.sum(Yb * logp, axis=1)) + 0.5 * lam * np.sum(W**2)
+        return f, np.r_[((P - Yb).T @ A / len(A) + lam * W).ravel(), (P - Yb).mean(axis=0)]
+
+    w0 = np.zeros(K * d + K)
+    res = minimize(obj, w0, jac=True, method="L-BFGS-B", options={"maxiter": 5000, "gtol": 1e-12, "ftol": 1e-16})
+    f_star = res.fun
+    L = np.linalg.eigvalsh(Z.T @ Z / n)[-1] / 2 + lam
+
+    def sgd(batch, eta, epochs=10):
+        rng = np.random.default_rng(SEED)
+        w = w0.copy()
+        for _ in range(epochs):
+            perm = rng.permutation(n)
+            for start in range(0, n, batch):
+                w = w - eta * obj(w, idx=perm[start:start + batch])[1]
+        f = obj(w)[0]
+        return f - f_star if np.isfinite(f) else np.inf
+
+    batches = [1, 4, 16, 64, 256]
+    etaLs = [0.01, 0.03, 0.1, 0.3, 1, 3, 10, 30, 100, 300]
+    grid = pd.DataFrame(index=batches, columns=etaLs, dtype=float)
+    with np.errstate(all="ignore"):
+        for B in batches:
+            for e in etaLs:
+                grid.loc[B, e] = sgd(B, e / L)
+    print("suboptimality after 10 epochs (rows: batch size, columns: eta * L)")
+    print(grid.to_string(float_format=lambda v: f"{v:.2e}"))
+    best = grid.idxmin(axis=1).astype(float)
+    best_gap = grid.min(axis=1)
+    print("best eta * L:", dict(zip(batches, [float(v) for v in best])))
+    slope = np.polyfit(np.log(batches), np.log(best.values), 1)[0]
+    print(f"(b) slope of log(best eta L) against log(B): {slope:.2f}")
+    print("(c) best suboptimality after 10 epochs:", "  ".join(f"B={B}: {g:.2e}" for B, g in best_gap.items()),
+          f"  | updates per epoch: " + ", ".join(f"{int(np.ceil(n / B))}" for B in batches))
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.8))
+    axes[0].loglog(batches, best.values, "o-", color=BLUE, label="best $\\eta L$")
+    axes[0].loglog(batches, best.values[0] * np.array(batches), "--", color=VERMILION, label="proportional to $B$")
+    axes[0].set(xlabel="batch size $B$", ylabel=r"best $\eta L$", title="(a) the best step size")
+    axes[0].legend(frameon=False)
+    axes[1].loglog(batches, best_gap.values, "o-", color=GREEN)
+    axes[1].set(xlabel="batch size $B$", ylabel="suboptimality after 10 epochs", title="(b) the best result")
+    fig.tight_layout()
+    plt.show()
+
+
+solution_7_9()
+
+# %% [markdown]
+# The best step sizes, in units of $1/L$, are $0.1$, $0.3$, $1$, $10$ and $30$ for $B = 1, 4, 16, 64, 256$, and the slope of their log-log fit is $1.08$: the best step is roughly proportional to the batch size, the linear scaling rule of Section 7.6. The grid has a spacing of a factor $3$ to $3.2$, so each best value is uncertain by that factor, and only the trend is established ($B$ multiplied by $256$, best step by $300$); in particular the jump between $B = 16$ and $B = 64$ ($1 \to 10$) is a grid effect, as the nearly equal entries at $\eta L = 3$ and $10$ for $B = 64$ show ($3.7 \cdot 10^{-2}$ and $3.0 \cdot 10^{-2}$). (c) The best suboptimalities after ten epochs, $1.1 \cdot 10^{-2}$, $1.7 \cdot 10^{-2}$, $2.2 \cdot 10^{-2}$, $3.0 \cdot 10^{-2}$ and $1.1 \cdot 10^{-2}$, all lie within a factor of three of one another, which a single seed and a coarse grid cannot resolve, while the number of updates per epoch varies from $1{,}347$ ($B = 1$) to $6$ ($B = 256$): the larger step compensates for the fewer updates, up to $B = 256$ on this problem. All the runs cost the same number of gradient evaluations (ten epochs), so on a vector machine the large-batch runs are the cheaper ones in time, because a batch gradient is computed with a matrix product; this is why large batches are used in practice, within the limits of the linear scaling rule (Goyal et al., 2017, in the further reading). Beyond $\eta L \approx 30$ the large batches get worse again, as the last columns of the table show.
+
+
+
+# %%
+def solution_7_10():
+    from scipy.special import expit
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.svm import LinearSVC
+
+    bc = load_breast_cancer(as_frame=True)
+    X, y = bc.data.to_numpy(), (1 - bc.target).to_numpy().astype(float)
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=SEED, stratify=y)
+    sc = StandardScaler().fit(Xtr)
+    A, Ate = np.c_[np.ones(len(ytr)), sc.transform(Xtr)], np.c_[np.ones(len(yte)), sc.transform(Xte)]
+    s = 2 * ytr - 1
+    svm = LinearSVC(C=1e6, loss="hinge", fit_intercept=False, dual=True, max_iter=5_000_000, tol=1e-10).fit(A, ytr)
+    w_hat = svm.coef_.ravel()
+    m = s * (A @ w_hat)
+    acc = lambda w: np.mean(((Ate @ w) > 0) == (yte == 1))
+    print(f"(a) separable: {m.min() > 0}; smallest functional margin {m.min():.6f}; ||w_hat|| = {np.linalg.norm(w_hat):.3f}; "
+          f"active constraints: {int(np.sum(m < 1 + 1e-6))}; hard-margin test accuracy {acc(w_hat):.4f}")
+    n = len(ytr)
+    L = np.linalg.eigvalsh(A.T @ A / n)[-1] / 4
+    w = np.zeros(A.shape[1])
+    rows = []
+    for k in range(1, 1_000_001):
+        w = w - (A.T @ (expit(A @ w) - ytr) / n) / L
+        if k in (10, 100, 1000, 10_000, 100_000, 1_000_000):
+            cos = w @ w_hat / (np.linalg.norm(w) * np.linalg.norm(w_hat))
+            rows.append({"k": k, "norm": np.linalg.norm(w), "angle (deg)": np.degrees(np.arccos(min(1.0, cos))),
+                         "margin ratio": (s * (A @ w)).min() / np.linalg.norm(w) * np.linalg.norm(w_hat),
+                         "train loss": np.mean(np.logaddexp(0, A @ w) - ytr * (A @ w)), "test accuracy": acc(w)})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+
+
+solution_7_10()
+
+# %% [markdown]
+# The Breast Cancer training set is separable: the hard-margin classifier has $\lVert\hat{\mathbf{w}}\rVert = 28.4$, $24$ active constraints, and a test accuracy of $0.930$ ($133$ of $143$ patients). Gradient descent on the unpenalized logistic loss approaches this direction extremely slowly: the angle is $71^\circ$ after $10$ steps, $38^\circ$ after $10^4$ and $9.3^\circ$ after $10^6$; the geometric margin is *negative* (the training set is not yet separated) until a number of steps between $10^5$ and $10^6$, and equals $63\%$ of the maximum at $10^6$. The norm grows from $29$ to $76$ in the last decade ($+46$, approaching the $+65$ predicted by $\lVert\hat{\mathbf{w}}\rVert\ln 10$), and the training loss is still $2.6 \cdot 10^{-3}$. This is the $O(1/\ln k)$ of Theorem 7.14, much slower than on Iris (Section 7.7.3), where the margin was at $96\%$ of the maximum after $10^3$ steps and at $99\%$ after $10^4$: with $31$ parameters and $426$ points the data separate with a thin margin and the limit is reached only after astronomical times.
+# (c) The test accuracy of the iterates is $0.972$, $0.986$, $0.965$, $0.965$, $0.937$ and $0.930$ at $k = 10, \dots, 10^6$: it falls as the iterate approaches the hard-margin classifier and ends at its value ($0.930$). The early-stopped iterates are *better* than the limit, by $5$ to $8$ patients out of $143$, the same lesson as Section 7.7.2: stopping early regularizes (Proposition 7.13), and the implicit bias of the limit, the maximum-margin classifier fitted without penalty in $31$ dimensions with $24$ active points, is not the best bias for these data (the unpenalized fit also had a test log-loss of $2.17$ against $0.078$ at $C = 1$ in Section 6.4.4). Two cautions: the test set is small, and the differences among the first four accuracies ($0.965$ to $0.986$, up to three patients) are within the noise of the evaluation; the difference to the limit is larger, but it comes from one split, and the number of steps would have to be chosen on validation data (Chapter 5), not on the test set.

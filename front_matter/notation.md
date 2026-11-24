@@ -102,6 +102,23 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $K,\ p_k(\mathbf{x}),\ \mathbf{w}_k,\ b_k$ | In softmax regression, $K$ is the number of classes (in Chapter 5 it is the number of folds), the probability of class $k$ and the weights and intercept of its score |
 | $\boldsymbol\varphi(\mathbf{x})$ | Feature map: a fixed function from $\mathbb{R}^d$ to $\mathbb{R}^p$ (for example all monomials up to a given degree); models linear in $\boldsymbol\varphi$ are nonlinear in $\mathbf{x}$ |
 
+## Optimization (Chapter 7)
+
+| Symbol | Meaning |
+|---|---|
+| $f,\ f^\ast,\ \mathbf{w}^\ast$ | The objective to be minimized, its minimum value and a minimizer; the suboptimality is $f(\mathbf{w}_k)-f^\ast$ |
+| $\nabla f,\ \nabla^2 f$ | Gradient (the vector of partial derivatives) and Hessian (the matrix of second derivatives) of $f$ |
+| $\eta,\ \eta_k$ | Step size (learning rate) of gradient descent, constant or at iteration $k$. (In Chapter 3, $\eta(\mathbf{x})$ is the regression function.) |
+| $L$ | Smoothness constant: $\nabla^2 f\preceq L\mathbf{I}$, the largest curvature. (In Chapter 6, $L$ is the log-loss.) $L_{\text{glob}}$ and $L_{\text{loc}}$ are the global bound and the largest curvature at the minimizer |
+| $\mu$ | Strong-convexity constant: $\nabla^2 f\succeq\mu\mathbf{I}$, the smallest curvature. (Elsewhere $\mu$ is a mean.) |
+| $\kappa=L/\mu$ | Condition number of the problem. (In Chapter 5, $\kappa(i)$ is the fold of example $i$.) |
+| $\rho$ | Rate of linear convergence: the error is multiplied by at most $\rho<1$ per iteration |
+| $\beta$ | Momentum parameter of the heavy-ball and Nesterov methods. (In Theorem 7.12, $\beta$ and $\gamma$ are the constants of the step $\eta_k=\beta/(\gamma+k)$.) |
+| $B,\ \mathbf{g}_k,\ \sigma^2$ | Mini-batch size; stochastic gradient at iteration $k$, unbiased for $\nabla f(\mathbf{w}_k)$; bound on its variance, which for a mini-batch is $\sigma^2/B$ |
+| epoch | One pass over the training set: $n/B$ updates, the cost of one full gradient |
+| $\mathbf{M},\ \mathbf{D}$ | Preconditioner $\mathbf{M}=\mathbf{D}\mathbf{D}^\top$ and the change of variables $\mathbf{w}=\mathbf{D}\mathbf{v}$ it comes from (Proposition 7.7) |
+| $\varphi_j(k)$ | Filter factor of the $j$-th eigendirection after $k$ gradient steps, $1-(1-\eta h_j)^k$, to compare with ridge's $h_j/(h_j+\lambda)$ (Proposition 7.13) |
+
 ## Probability
 
 | Symbol | Meaning |

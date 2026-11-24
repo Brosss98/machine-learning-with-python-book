@@ -8,7 +8,7 @@ Copyright © 2026 Mario Medone
 Author: Mario Medone, independent author
 Author's GitHub profile: <https://github.com/Brosss98>
 
-Version 0.6.0 (work in progress)
+Version 0.7.0 (work in progress)
 
 ## Publication and versioning
 
@@ -75,7 +75,7 @@ The notebooks rely on open-source libraries and on datasets distributed with the
 
 If you refer to this book, please cite the version you used:
 
-> Medone, M. (2026). *Machine Learning with Python: From Linear Algebra to Deep Learning. A Hands-On Mathematical Guide with Jupyter Notebooks, scikit-learn and PyTorch* (Version 0.6.0). <https://brosss98.github.io/machine-learning-with-python-book/>
+> Medone, M. (2026). *Machine Learning with Python: From Linear Algebra to Deep Learning. A Hands-On Mathematical Guide with Jupyter Notebooks, scikit-learn and PyTorch* (Version 0.7.0). <https://brosss98.github.io/machine-learning-with-python-book/>
 
 ```bibtex
 @misc{medone2026machinelearning,
@@ -84,7 +84,7 @@ If you refer to this book, please cite the version you used:
                   A Hands-On Mathematical Guide with Jupyter Notebooks,
                   scikit-learn and PyTorch},
   year         = {2026},
-  note         = {Version 0.6.0},
+  note         = {Version 0.7.0},
   howpublished = {\url{https://brosss98.github.io/machine-learning-with-python-book/}}
 }
 ```
