@@ -86,6 +86,22 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $c_{FP},\ c_{FN},\ t^\ast$ | Costs of a false positive and of a false negative; the cost-optimal threshold $t^\ast = c_{FP}/(c_{FP}+c_{FN})$ for calibrated probabilities |
 | $h_{ii}$ | Leverage of example $i$ in linear regression (diagonal of the hat matrix); the leave-one-out residual is $e_i/(1-h_{ii})$ |
 
+## Linear models and regularization (Chapter 6)
+
+| Symbol | Meaning |
+|---|---|
+| $\lambda,\ \hat{\mathbf{w}}_\lambda$ | Strength of the $\ell_2$ penalty and the ridge estimator, which minimizes $\lVert\mathbf{y}-\mathbf{X}\mathbf{w}\rVert^2+\lambda\lVert\mathbf{w}\rVert^2$ (`alpha` in scikit-learn's `Ridge`); for logistic regression the objective is the mean loss plus $\tfrac\lambda2\lVert\mathbf{w}\rVert^2$. The intercept is never penalized |
+| $\sigma_j,\ \mathbf{u}_j,\ \mathbf{v}_j,\ f_j(\lambda)$ | Singular values and left and right singular vectors of the centered feature matrix; shrinkage factors $f_j(\lambda)=\sigma_j^2/(\sigma_j^2+\lambda)$ of ridge. (Do not confuse $\sigma_j$ with $\sigma^2$, the noise variance, nor with $\sigma(\cdot)$, the sigmoid) |
+| $\mathbf{H}_\lambda,\ \mathrm{df}(\lambda)$ | Smoother (hat) matrix of ridge, $\hat{\mathbf{y}}=\mathbf{H}_\lambda\mathbf{y}$, and effective degrees of freedom $\mathrm{df}(\lambda)=\operatorname{tr}\mathbf{H}_\lambda=\sum_jf_j(\lambda)$ (plus 1 for the intercept) |
+| $\mathrm{VIF}_j$ | Variance inflation factor of feature $j$, $1/(1-R_j^2)$ with $R_j^2$ the $R^2$ of regressing feature $j$ on the others |
+| $\sigma(z)$ | Logistic function (sigmoid) $1/(1+e^{-z})$; the log-odds $\log\frac{\eta}{1-\eta}$ are linear in the features |
+| $\tilde{\mathbf{X}},\ \boldsymbol\theta$ | Design matrix with a column of ones in front, and the parameter vector $(b,\mathbf{w})$ that includes the intercept |
+| $p_i,\ \mathbf{S}$ | Predicted probability of class 1 for example $i$; the diagonal matrix $\mathbf{S}=\mathrm{diag}\big(p_i(1-p_i)\big)$ of the Newton weights. (Elsewhere in the chapter $p$ is the number of parameters) |
+| $m_i,\ L,\ J_\lambda$ | Signed score $m_i=(2y_i-1)z_i$; negative log-likelihood (log-loss, cross-entropy) $L=\sum_i\log(1+e^{-m_i})$; penalized objective $J_\lambda$ |
+| $C$ | Inverse regularization strength of scikit-learn: $C$ multiplies the sum of the losses, so $\lambda=1/(Cn)$ |
+| $K,\ p_k(\mathbf{x}),\ \mathbf{w}_k,\ b_k$ | In softmax regression, $K$ is the number of classes (in Chapter 5 it is the number of folds), the probability of class $k$ and the weights and intercept of its score |
+| $\boldsymbol\varphi(\mathbf{x})$ | Feature map: a fixed function from $\mathbb{R}^d$ to $\mathbb{R}^p$ (for example all monomials up to a given degree); models linear in $\boldsymbol\varphi$ are nonlinear in $\mathbf{x}$ |
+
 ## Probability
 
 | Symbol | Meaning |

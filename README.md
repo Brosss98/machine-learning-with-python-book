@@ -2,7 +2,7 @@
 
 *A Hands-On Mathematical Guide with Jupyter Notebooks, scikit-learn and PyTorch*
 
-**Author:** Mario Medone · **Version:** 0.5.0 (work in progress, one chapter at a time) · **Year:** 2026
+**Author:** Mario Medone · **Version:** 0.6.0 (work in progress, one chapter at a time) · **Year:** 2026
 
 A university-level textbook for students who know linear algebra and calculus and want to enter machine learning with confidence. Every chapter combines intuition, step-by-step mathematics, Python code on real datasets, worked examples, and exercises of increasing difficulty (manual and computational).
 

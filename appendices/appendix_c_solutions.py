@@ -1495,3 +1495,345 @@ solution_5_10()
 # For $c_{FN}/c_{FP} = 1$ the three rules coincide in practice ($t^\ast = 0.5$ is the conventional threshold, and the data-driven rule is 0.003 worse, the price of estimating a threshold that is already known). For a ratio of 5 the theory and the out-of-fold rule are equivalent (0.092 and 0.090) and both are a little better than 0.5 (0.101), a difference smaller than the spread across splits. As the ratio grows the conventional threshold becomes costly and the **theory threshold is the best rule**: at ratio 10 the costs are 0.196 for $t = 0.5$, 0.156 for the out-of-fold optimum and 0.136 for $t^\ast$; at ratio 50 they are 0.954, 0.331 and 0.256, so that keeping $t = 0.5$ costs 3.7 times as much as using $t^\ast$.
 #
 # The out-of-fold threshold is **highly variable**: its standard deviation is 0.074, 0.110 and 0.126 for the ratios 1, 5 and 10, as large as the threshold itself at ratio 10 (mean 0.162, against $t^\ast = 0.091$). The reason is visible in Figure 5.11(b): the cost curve of the logistic regression is nearly flat over a wide range of thresholds, with steps of one patient, so the minimum of a noisy curve can fall anywhere on the plateau, and the cost on new patients depends on where it fell (the standard deviation of the cost of this rule is 0.070 at ratio 10 and 0.225 at ratio 50, against 0.055 and 0.144 for $t^\ast$). The theory threshold has no such noise, but it is valid only if the scores are calibrated probabilities, which is the case for the logistic regression of this data set (Figure 5.11(a)); for a classifier with poorly calibrated scores, such as a $k$-NN with few neighbors or a decision tree, the threshold would have to be chosen from the data, after calibrating the scores, preferably with a smoother criterion than the minimum of a staircase.
+
+# %% [markdown]
+# ## C.6 Chapter 6
+#
+# ### Manual exercises
+#
+# **Solution 6.1 — Variances by hand.**
+#
+# (a) With rows $(1, x_i)$ for $x = -3, -1, 1, 3$: $\mathbf{X}^\top\mathbf{X} = \begin{pmatrix}4 & 0\\ 0 & 20\end{pmatrix}$ (the sum of the $x_i$ is $0$ and the sum of their squares is $9 + 1 + 1 + 9 = 20$). Then $\sigma^2(\mathbf{X}^\top\mathbf{X})^{-1} = 4\,\mathrm{diag}(\tfrac14, \tfrac1{20}) = \mathrm{diag}(1,\ 0.2)$: $\operatorname{Var}(\hat b) = 1$, $\operatorname{Var}(\hat w) = 0.2$, and the two estimators are uncorrelated because the design is centered.
+#
+# (b) With $\mathbf{x}_0 = (1, 2)^\top$: $h_0 = \mathbf{x}_0^\top(\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{x}_0 = \tfrac14 + \tfrac{4}{20} = 0.45$. The variance of the fitted value is $\sigma^2 h_0 = \mathbf{1.8}$, and the expected squared error of a *new observation* is the noise plus that variance: $\sigma^2(1 + h_0) = 4 \cdot 1.45 = \mathbf{5.8}$ (Theorem 6.1).
+#
+# (c) $h_{ii} = \tfrac14 + x_i^2/20$, that is $0.7,\ 0.3,\ 0.3,\ 0.7$, and the sum is $2 = p$: the trace of the hat matrix equals the number of parameters. The two extreme points have leverage $0.7$, so they pull the line more than the central ones.
+#
+# (d) For $x = -3, -3, 3, 3$ we get $\sum_i(x_i - \bar x)^2 = 36$ instead of $20$ and $\operatorname{Var}(\hat w) = \sigma^2/36 = 0.111$ instead of $0.2$, a reduction of 44%. The variance of a slope is $\sigma^2/\sum_i(x_i - \bar x)^2$: *spreading the inputs to the ends of the range* is the best way to measure a slope (at the price of not being able to detect curvature, which needs points in the middle).
+#
+# **Solution 6.2 — Ridge by hand.**
+#
+# (a) $\mathbf{X}^\top\mathbf{X} = \begin{pmatrix}2&1\\1&2\end{pmatrix}$, $\mathbf{X}^\top\mathbf{y} = (3, 4)^\top$, and $(\mathbf{X}^\top\mathbf{X})^{-1} = \tfrac13\begin{pmatrix}2&-1\\-1&2\end{pmatrix}$, so $\hat{\mathbf{w}}_0 = \tfrac13(6 - 4,\ -3 + 8) = (\tfrac23, \tfrac53)$. The fitted values are $(\tfrac23, \tfrac53, \tfrac73)$, the residuals $(\tfrac13, \tfrac13, -\tfrac13)$ and $\mathrm{RSS} = \tfrac13$.
+#
+# (b) $\mathbf{X}^\top\mathbf{X} + \mathbf{I} = \begin{pmatrix}3&1\\1&3\end{pmatrix}$, with inverse $\tfrac18\begin{pmatrix}3&-1\\-1&3\end{pmatrix}$, so $\hat{\mathbf{w}}_1 = \tfrac18(9 - 4,\ -3 + 12) = (\tfrac58, \tfrac98)$. The fitted values are $(\tfrac58, \tfrac98, \tfrac{14}8)$, the residuals $(\tfrac38, \tfrac78, \tfrac28)$ and $\mathrm{RSS} = (9 + 49 + 4)/64 = \tfrac{31}{32} = 0.969$: the fit is worse than that of least squares ($\tfrac13$), and the squared norm of the weights has decreased from $\tfrac{29}{9} = 3.22$ to $\tfrac{53}{32} = 1.66$.
+#
+# (c) For $\tilde{\mathbf{X}} = (\mathbf{X}; \mathbf{I}_2)$ and $\tilde{\mathbf{y}} = (\mathbf{y}; \mathbf{0})$, $\tilde{\mathbf{X}}^\top\tilde{\mathbf{X}} = \mathbf{X}^\top\mathbf{X} + \mathbf{I}$ and $\tilde{\mathbf{X}}^\top\tilde{\mathbf{y}} = \mathbf{X}^\top\mathbf{y}$, so the normal equations of the augmented problem are those of ridge with $\lambda = 1$.
+#
+# (d) $\mathbf{v}_1^\top\hat{\mathbf{w}}_0 = (\tfrac23 + \tfrac53)/\sqrt2 = \tfrac{7}{3\sqrt2}$ and $\mathbf{v}_1^\top\hat{\mathbf{w}}_1 = (\tfrac58 + \tfrac98)/\sqrt2 = \tfrac{7}{4\sqrt2}$: the ratio is $\tfrac34 = \tfrac{3}{3 + 1} = \sigma_1^2/(\sigma_1^2 + \lambda)$. Along $\mathbf{v}_2$: $(\tfrac23 - \tfrac53)/\sqrt2 = -\tfrac1{\sqrt2}$ and $(\tfrac58 - \tfrac98)/\sqrt2 = -\tfrac{1}{2\sqrt2}$, ratio $\tfrac12 = \tfrac{1}{1 + 1}$. The direction with the smaller singular value is shrunk more. Finally $\mathrm{df}(1) = \tfrac34 + \tfrac12 = \tfrac54$: ridge with $\lambda = 1$ has an effective $1.25$ parameters out of 2.
+#
+# **Solution 6.3 — Logistic regression: a Newton step, and divergence.**
+#
+# (a) At $(b, w) = (0, 0)$, $\mathbf{p} = (\tfrac12, \tfrac12, \tfrac12)$, so $\mathbf{p} - \mathbf{y} = (\tfrac12, -\tfrac12, -\tfrac12)$. With the rows $(1, -1), (1, 0), (1, 1)$ of $\tilde{\mathbf{X}}$, the gradient is $\tilde{\mathbf{X}}^\top(\mathbf{p} - \mathbf{y}) = (\tfrac12 - \tfrac12 - \tfrac12,\ -\tfrac12 + 0 - \tfrac12) = (-\tfrac12, -1)$. The Hessian is $\tfrac14\tilde{\mathbf{X}}^\top\tilde{\mathbf{X}} = \tfrac14\mathrm{diag}(3, 2) = \mathrm{diag}(\tfrac34, \tfrac12)$. The Newton step is $-\mathbf{H}^{-1}\mathbf{g} = (\tfrac43\cdot\tfrac12,\ 2\cdot 1) = (\tfrac23, 2)$: the model starts to say that larger $x$ means $y = 1$, with a steep slope.
+#
+# (b) For $x = -1, y = 0$ the signed score is $m = (2\cdot 0 - 1)(w \cdot (-1)) = w$, and for $x = 1, y = 1$ it is $m = w$: so $L(w) = 2\log(1 + e^{-w})$. Then $L'(w) = -2\sigma(-w)$ and $L''(w) = 2\sigma(w)\sigma(-w)$, and Newton's method gives
+# $$
+# w_{t+1} = w_t - \frac{L'(w_t)}{L''(w_t)} = w_t + \frac{1}{\sigma(w_t)} = w_t + 1 + e^{-w_t}.
+# $$
+# From $w_0 = 0$: $w_1 = 2$, $w_2 = 2 + 1 + e^{-2} = 3.135$, $w_3 = 4.179$, $w_4 = 5.194$, $w_5 = 6.200$. The sequence grows by slightly more than $1$ at each step: **linearly, without limit**, while the loss $2\log(1 + e^{-w}) \to 0$ like $e^{-t}$. This is Proposition 6.10 in one dimension: the data are separable (any $w > 0$ classifies both points correctly) and there is no maximum-likelihood estimate.
+#
+# (c) $J'(w) = -\sigma(-w) + \lambda w$ and $J''(w) = \sigma(w)\sigma(-w) + \lambda > 0$, so $J$ is strictly convex and $J'$ is strictly increasing. Since $J'(0) = -\tfrac12 < 0$ and $J'(1/\lambda) = 1 - \sigma(-1/\lambda) > 0$, $J'$ has exactly one root, in $(0, 1/\lambda)$: the minimizer exists and is unique, and it solves $\sigma(-w) = \lambda w$, that is, $1/(1 + e^{w}) = \lambda w$. For $\lambda = 0.1$ bisection gives $w^\ast \approx \mathbf{1.634}$ (check: $\sigma(-1.634) = 0.1634 = 0.1 \cdot 1.634$). The Newton step for the penalized problem is $w \leftarrow w - J'(w)/J''(w)$ and converges in a few iterations. The penalty has turned a problem without a solution into one with a finite answer, here a model that gives probability $\sigma(1.634) = 0.837$ to the correct class of each example, instead of the probability tending to $1$.
+#
+# **Solution 6.4 — Ridge shrinks the norm, not each coefficient.**
+#
+# (a) In the SVD basis $\hat{\mathbf{w}}_\lambda = \sum_j\frac{\sigma_j c_j}{\sigma_j^2 + \lambda}\mathbf{v}_j$, and since the $\mathbf{v}_j$ are orthonormal, $\lVert\hat{\mathbf{w}}_\lambda\rVert^2 = \sum_j\frac{\sigma_j^2c_j^2}{(\sigma_j^2 + \lambda)^2}$. Each term with $c_j \ne 0$ is strictly decreasing in $\lambda$, so the norm is strictly decreasing. For the residual, write $\mathbf{y} = \sum_jc_j\mathbf{u}_j + \mathbf{r}$ with $\mathbf{r}$ orthogonal to the columns of $\mathbf{U}$; then $\mathbf{y} - \mathbf{Z}\hat{\mathbf{w}}_\lambda = \sum_j(1 - f_j)c_j\mathbf{u}_j + \mathbf{r}$ with $1 - f_j = \lambda/(\sigma_j^2 + \lambda)$, so
+# $$
+# \mathrm{RSS}(\lambda) = \sum_j\Big(\frac{\lambda}{\sigma_j^2 + \lambda}\Big)^2c_j^2 + \lVert\mathbf{r}\rVert^2,
+# $$
+# and every term increases with $\lambda$. Ridge trades a worse fit for a smaller norm, and does so monotonically.
+#
+# (b) For the data of Exercise 6.2, $\sigma_1^2 = 3$ and $\sigma_2^2 = 1$, and the components of $\hat{\mathbf{w}}_0$ along $\mathbf{v}_1, \mathbf{v}_2$ are $\tfrac{7}{3\sqrt2}$ and $-\tfrac1{\sqrt2}$. Shrinking them by $\tfrac{3}{3 + \lambda}$ and $\tfrac{1}{1 + \lambda}$,
+# $$
+# w_1(\lambda) = \frac{1}{\sqrt2}\Big(\frac{7}{\sqrt2(3 + \lambda)} - \frac{1}{\sqrt2(1 + \lambda)}\Big) = \frac{7}{2(3 + \lambda)} - \frac{1}{2(1 + \lambda)}, \qquad
+# w_2(\lambda) = \frac{7}{2(3 + \lambda)} + \frac{1}{2(1 + \lambda)}.
+# $$
+# (Checks: $w_1(0) = \tfrac23$, $w_2(0) = \tfrac53$, and $w_1(1) = \tfrac58$, $w_2(1) = \tfrac98$.) Then $w_1'(\lambda) = -\frac{7}{2(3 + \lambda)^2} + \frac{1}{2(1 + \lambda)^2}$ and $w_1'(0) = -\tfrac7{18} + \tfrac12 = \tfrac19 > 0$: the coefficient **increases** for small $\lambda$. It vanishes when $7(1 + \lambda)^2 = (3 + \lambda)^2$, that is $\sqrt7(1 + \lambda) = 3 + \lambda$, $\lambda^\ast = \frac{3 - \sqrt7}{\sqrt7 - 1} = 0.215$, where $w_1 = 0.677 > w_1(0) = 0.667$; after that $w_1$ decreases to $0$. The other coefficient, $w_2$, decreases throughout.
+#
+# (c) The norm of the whole vector shrinks monotonically, but a *single* coefficient is a combination of several singular directions that are shrunk at different rates, and it can move in either direction (in Figure 6.3 `s2` even changes sign). The path of a coefficient is therefore not a measure of its importance, and the sign of a coefficient at a given $\lambda$ is not a reliable indicator of the direction of the effect, particularly when features are correlated.
+#
+# **Solution 6.5 — The softmax model.**
+#
+# (a) For one example of class $y$, with the one-hot vector $y_k$ ($\sum_ky_k = 1$), $L = -\sum_ky_k\log p_k = -\sum_ky_kz_k + \log\sum_je^{z_j}$. Since $\partial\log\sum_je^{z_j}/\partial z_k = p_k$, we get $\partial L/\partial z_k = p_k - y_k$. The chain rule with $z_k = \mathbf{w}_k^\top\mathbf{x} + b_k$ gives $\nabla_{\mathbf{w}_k}L = \sum_i(p_{ik} - y_{ik})\mathbf{x}_i$ and $\partial L/\partial b_k = \sum_i(p_{ik} - y_{ik})$.
+#
+# (b) For $K = 2$, $p_1 = \dfrac{e^{z_1}}{e^{z_0} + e^{z_1}} = \dfrac{1}{1 + e^{-(z_1 - z_0)}} = \sigma(z_1 - z_0)$ with $z_1 - z_0 = (\mathbf{w}_1 - \mathbf{w}_0)^\top\mathbf{x} + (b_1 - b_0)$: a logistic regression with $\mathbf{w} = \mathbf{w}_1 - \mathbf{w}_0$ and $b = b_1 - b_0$. The gradients of (a) are $\nabla_{\mathbf{w}_1}L = \sum_i(p_i - y_i)\mathbf{x}_i$, exactly that of Proposition 6.9 (with $p_i = p_{i1}$, $y_i = y_{i1}$), and $\nabla_{\mathbf{w}_0}L = -\nabla_{\mathbf{w}_1}L$ because $p_{i0} - y_{i0} = -(p_{i1} - y_{i1})$. The two gradients add up to zero, which is the infinitesimal form of the invariance of (c).
+#
+# (c) With $\mathbf{w}_k + \mathbf{c}$ in place of $\mathbf{w}_k$ every score changes to $z_{k} + \mathbf{c}^\top\mathbf{x}$, and $e^{z_k + \mathbf{c}^\top\mathbf{x}}/\sum_je^{z_j + \mathbf{c}^\top\mathbf{x}} = e^{z_k}/\sum_je^{z_j}$: the probabilities, and hence the loss $L$, do not change. Now let $\bar{\mathbf{w}} = \frac1K\sum_k\mathbf{w}_k$ and replace each $\mathbf{w}_k$ by $\mathbf{w}_k - \bar{\mathbf{w}}$. The loss $L$ is unchanged, and since $\sum_k\lVert\mathbf{w}_k - \bar{\mathbf{w}}\rVert^2 = \sum_k\lVert\mathbf{w}_k\rVert^2 - K\lVert\bar{\mathbf{w}}\rVert^2$, the penalty decreases strictly unless $\bar{\mathbf{w}} = \mathbf{0}$. A minimizer for which $\bar{\mathbf{w}} \ne \mathbf{0}$ could be improved, so every minimizer has $\sum_k\mathbf{w}_k = \mathbf{0}$. The intercepts are not penalized and are not constrained: the same shift would apply to them with no change in the penalty.
+
+# %% [markdown]
+# ### Python exercises
+
+# %%
+def solution_6_6():
+    from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import LinearRegression, RidgeCV
+    from sklearn.model_selection import train_test_split
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from scipy import stats
+
+    X, y = load_diabetes(return_X_y=True)
+    n_test = 111
+    for n_train in [331, 60]:
+        d, ols_mse, ridge_mse, alphas = [], [], [], []
+        for r in range(100):
+            Xa, Xb, ya, yb = train_test_split(X, y, train_size=n_train, test_size=n_test, random_state=r)
+            ols = make_pipeline(StandardScaler(), LinearRegression()).fit(Xa, ya)
+            ridge = make_pipeline(StandardScaler(), RidgeCV(alphas=np.logspace(-2, 4, 61))).fit(Xa, ya)
+            e_ols, e_ridge = np.mean((yb - ols.predict(Xb)) ** 2), np.mean((yb - ridge.predict(Xb)) ** 2)
+            ols_mse.append(e_ols); ridge_mse.append(e_ridge); d.append(e_ols - e_ridge); alphas.append(ridge[-1].alpha_)
+        d = np.array(d)
+        t = d.mean() / np.sqrt((1 / len(d) + n_test / n_train) * d.var(ddof=1))
+        t_naive = d.mean() / np.sqrt(d.var(ddof=1) / len(d))
+        p_corr = 2 * stats.t.sf(abs(t), df=len(d) - 1)
+        print(f"n_train = {n_train}, n_test = {n_test}:  mean test MSE  least squares {np.mean(ols_mse):.1f}, ridge {np.mean(ridge_mse):.1f};  "
+              f"mean difference (OLS - ridge) {d.mean():.1f};  ridge better in {int((d > 0).sum())}/100;  median alpha {np.median(alphas):.1f}")
+        print(f"      naive t = {t_naive:.2f} (p = {2 * stats.t.sf(abs(t_naive), df=len(d) - 1):.4f});  corrected t = {t:.2f} (p = {p_corr:.3f})")
+
+
+solution_6_6()
+
+# %% [markdown]
+# **(a)** With 331 training patients, least squares has a mean test MSE of 3024.0 and ridge 3032.1: ridge is slightly *worse* by 8.1 on average and better in 52 of the 100 splits. The naive paired $t$-test, which treats the 100 splits as independent, gives $t = -2.88$ ($p = 0.005$) and would declare ridge *significantly worse*, a false alarm: the splits share patients and the differences are not independent (Section 5.5.2). **(b)** The corrected resampled test gives $t = -0.49$ ($p = 0.63$): there is no evidence of any difference. This is the picture of Section 6.3.4: with $n = 331$ and $p = 10$ there is little for ridge to gain.
+#
+# **(c)** With 60 training patients the picture changes: least squares has a test MSE of 3672.3 and ridge 3411.0, a mean gain of 261.3 (7%), and ridge is better in 84 of the 100 splits (the median penalty chosen is $\alpha = 15.8$). Ridge lowers the variance of the estimator, which matters when $n$ is small, as in Section 6.3.4. The naive test is wildly confident ($t = 5.5$) but the *corrected* test is not: $t = 0.40$, $p = 0.69$. With a data set of only 442 patients the splits overlap heavily and the gain varies a lot from split to split, and the correction (which inflates the variance by $1/J + n_{\text{test}}/n_{\text{train}} = 1.86$) is conservative in this setting. The honest conclusion is that ridge was better in most of the splits, and that this data set is too small to turn the observation into a statistically significant statement; a new sample of patients would be needed for that.
+
+# %%
+def solution_6_7():
+    from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import Ridge
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_diabetes(return_X_y=True)
+    Xtr, _, ytr, _ = train_test_split(X, y, test_size=0.25, random_state=SEED)
+    Z = StandardScaler().fit_transform(Xtr)
+
+    def ridge_svd(Z, y, lam):
+        xm, ym = Z.mean(axis=0), y.mean()
+        U, s, Vt = np.linalg.svd(Z - xm, full_matrices=False)
+        w = Vt.T @ ((s / (s ** 2 + lam)) * (U.T @ (y - ym)))
+        return ym - xm @ w, w
+
+    def ridge_aug(Z, y, lam):
+        xm, ym = Z.mean(axis=0), y.mean()
+        d = Z.shape[1]
+        A = np.vstack([Z - xm, np.sqrt(lam) * np.eye(d)])
+        w = np.linalg.lstsq(A, np.r_[y - ym, np.zeros(d)], rcond=None)[0]
+        return ym - xm @ w, w
+
+    def ridge_normal(Z, y, lam):
+        xm, ym = Z.mean(axis=0), y.mean()
+        Zc = Z - xm
+        w = np.linalg.solve(Zc.T @ Zc + lam * np.eye(Z.shape[1]), Zc.T @ (y - ym))
+        return ym - xm @ w, w
+
+    ref = Ridge(alpha=10.0).fit(Z, ytr)
+    print("(a) maximum difference from scikit-learn's Ridge(alpha=10):")
+    for name, f in [("SVD", ridge_svd), ("augmented", ridge_aug), ("normal equations", ridge_normal)]:
+        b, w = f(Z, ytr, 10.0)
+        print(f"    {name:<17} weights {np.abs(w - ref.coef_).max():.1e}   intercept {abs(b - ref.intercept_):.1e}")
+
+    # (b), (c): df and GCV from one SVD
+    lams = np.logspace(-2, 4, 61)
+    n = len(ytr)
+    U, s, _ = np.linalg.svd(Z - Z.mean(axis=0), full_matrices=False)
+    uy = U.T @ (ytr - ytr.mean())
+    rss_resid = np.sum((ytr - ytr.mean()) ** 2) - np.sum(uy ** 2)       # part of y orthogonal to the columns of U
+    df = np.array([np.sum(s ** 2 / (s ** 2 + l)) for l in lams])
+    rss = np.array([np.sum(((l / (s ** 2 + l)) * uy) ** 2) + rss_resid for l in lams])
+    gcv = n * rss / (n - 1 - df) ** 2                                   # the trace of the whole smoother is 1 + df (the intercept)
+    # leave-one-out curve of Proposition 6.8, for comparison
+    h = lambda l: 1 / n + (U ** 2) @ (s ** 2 / (s ** 2 + l))
+    loo = np.array([np.mean(((ytr - ytr.mean() - U @ ((s ** 2 / (s ** 2 + l)) * uy)) / (1 - h(l))) ** 2) for l in lams])
+    print(f"(b) df(lambda): 10 at lambda = 0.01, {np.interp(np.log10(10), np.log10(lams), df):.2f} at 10, {np.interp(np.log10(1000), np.log10(lams), df):.2f} at 1000, {df[-1]:.2f} at 10^4")
+    print(f"(c) minimizer of GCV: lambda = {lams[gcv.argmin()]:.2f};  minimizer of LOO: lambda = {lams[loo.argmin()]:.2f};  "
+          f"largest relative difference between GCV and LOO on the grid: {np.max(np.abs(gcv / loo - 1)):.4f}")
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.6, 3.9))
+    axes[0].semilogx(lams, df, color=BLUE, lw=2)
+    axes[0].set(xlabel=r"$\lambda$", ylabel=r"$\mathrm{df}(\lambda)$", title="(b) Effective degrees of freedom")
+    axes[1].semilogx(lams, loo, color=VERMILION, lw=2, label="leave-one-out")
+    axes[1].semilogx(lams, gcv, color=GREEN, lw=2, ls="--", label="GCV")
+    axes[1].set(xlabel=r"$\lambda$", ylabel="estimated prediction error", title="(c) GCV against LOO")
+    axes[1].set(ylim=(3080, 3400), xlim=(lams[0], 1e3))
+    axes[1].legend(frameon=False)
+    fig.tight_layout()
+    plt.show()
+
+    # (d) the badly conditioned design of Section 6.2.3, tiny penalty, no intercept
+    x_grid = np.linspace(0, 1, 50)
+    V = np.vander(x_grid, 10, increasing=True)
+    w_true = np.ones(10)
+    y_exact = V @ w_true
+    lam_d = 1e-10
+    U9, s9, Vt9 = np.linalg.svd(V, full_matrices=False)
+    w_ref = Vt9.T @ ((s9 / (s9 ** 2 + lam_d)) * (U9.T @ y_exact))
+    w_a = np.linalg.lstsq(np.vstack([V, np.sqrt(lam_d) * np.eye(10)]), np.r_[y_exact, np.zeros(10)], rcond=None)[0]
+    w_n = np.linalg.solve(V.T @ V + lam_d * np.eye(10), V.T @ y_exact)
+    rel = lambda w: np.linalg.norm(w - w_ref) / np.linalg.norm(w_ref)
+    print(f"(d) degree 9, lambda = {lam_d:g}, kappa(X) = {np.linalg.cond(V):.1e}: relative difference from the SVD solution: "
+          f"augmented {rel(w_a):.1e}, normal equations {rel(w_n):.1e}")
+
+
+solution_6_7()
+
+# %% [markdown]
+# **(a)** The three implementations agree with scikit-learn's `Ridge(alpha=10)` to $10^{-12}$ or better: on a well-conditioned design (the standardized Diabetes data) the choice of algorithm is a matter of cost, not of accuracy. **(b)** The effective degrees of freedom decrease from 10 (at $\lambda = 0.01$) to 8.66 at $\lambda = 10$, 2.09 at $\lambda = 1000$ and 0.31 at $\lambda = 10^4$.
+#
+# **(c)** GCV, which replaces each individual leverage $h_{ii}$ by their average $(1 + \mathrm{df})/n$, and the exact leave-one-out error give almost the same curve (the largest relative difference on the grid is 0.27%), but their minimizers differ by a factor of 16 ($\lambda = 25.1$ against $1.58$). The reason is the flatness of the curves: between $\lambda = 10^{-2}$ and $10^2$ the estimated error varies by a few units out of 3100, so a perturbation of a fraction of a percent moves the minimum far along the axis. The practical lesson of Section 6.3.4 applies: the value of $\lambda$ within the flat region hardly matters, and one should not read much into the exact location of the minimum.
+#
+# **(d)** On the degree-9 monomial design (condition number $3.6 \cdot 10^6$), with $\lambda = 10^{-10}$, least squares on the augmented data agrees with the SVD solution to $10^{-11}$, whereas the normal equations differ by $10^{-5}$: forming $\mathbf{X}^\top\mathbf{X}$ squares the condition number, exactly as in Section 6.2.3, and a penalty as small as $10^{-10}$ does not repair it. When $\lambda$ is large enough compared with the smallest squared singular values, the penalty is itself a cure for ill-conditioning, which is another reason for using ridge in practice.
+
+# %%
+def solution_6_8():
+    from scipy.optimize import minimize, check_grad
+    from scipy.special import softmax, logsumexp
+    from sklearn.datasets import load_iris
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.preprocessing import StandardScaler
+
+    def unpack(theta, K, d):
+        return theta[:K * d].reshape(K, d), theta[K * d:]
+
+    def loss_and_grad(theta, Z, y, K, lam):
+        n, d = Z.shape
+        W, b = unpack(theta, K, d)
+        S = Z @ W.T + b
+        logp = S - logsumexp(S, axis=1, keepdims=True)
+        Y = np.eye(K)[y]
+        J = -np.mean(np.sum(Y * logp, axis=1)) + 0.5 * lam * np.sum(W ** 2)
+        P = np.exp(logp)
+        gW = (P - Y).T @ Z / n + lam * W
+        gb = (P - Y).mean(axis=0)
+        return J, np.r_[gW.ravel(), gb]
+
+    # (a) gradient check on random data
+    rng = np.random.default_rng(SEED)
+    Zr, yr, K, lam = rng.normal(size=(40, 5)), rng.integers(0, 3, 40), 3, 0.3
+    th = rng.normal(size=3 * 5 + 3)
+    err = check_grad(lambda t: loss_and_grad(t, Zr, yr, K, lam)[0], lambda t: loss_and_grad(t, Zr, yr, K, lam)[1], th)
+    print(f"(a) norm of (analytic gradient - finite differences) = {err:.1e}   (norm of the gradient = {np.linalg.norm(loss_and_grad(th, Zr, yr, K, lam)[1]):.2f})")
+
+    # (b) Iris
+    X, y = load_iris(return_X_y=True)
+    Z = StandardScaler().fit_transform(X)
+    n, d = Z.shape
+    K, lam = 3, 0.01
+    res = minimize(loss_and_grad, np.zeros(K * d + K), args=(Z, y, K, lam), jac=True, method="L-BFGS-B", options={"maxiter": 5000, "gtol": 1e-10, "ftol": 1e-15})
+    W, b = unpack(res.x, K, d)
+    sk = LogisticRegression(C=1 / (n * lam), max_iter=10000, tol=1e-12).fit(Z, y)
+    print(f"(b) L-BFGS: {res.nit} iterations, J = {res.fun:.6f}, norm of the gradient {np.linalg.norm(res.jac):.1e};  "
+          f"max |W - sklearn| = {np.abs(W - sk.coef_).max():.1e},  max |b - sklearn| = {np.abs(b - sk.intercept_).max():.1e}")
+    print(f"(c) sum over the classes of the weights, per feature: {np.round(W.sum(axis=0), 8)}")
+    print("    the same, for the same model with an arbitrary vector added to all the class weights: probabilities change by "
+          f"{np.abs(softmax(Z @ (W + 3.0).T + b, axis=1) - softmax(Z @ W.T + b, axis=1)).max():.1e}")
+
+
+solution_6_8()
+
+# %% [markdown]
+# **(a)** The analytic gradient agrees with finite differences to $1.3 \cdot 10^{-7}$, while the gradient itself has norm 1.63: the implementation is correct. **(b)** L-BFGS converges in 35 iterations to $J = 0.243677$, with a gradient of norm $4 \cdot 10^{-9}$, and the weights agree with those of scikit-learn's `LogisticRegression(C=1/(n*lam))` to $5 \cdot 10^{-7}$ (the intercepts to $9 \cdot 10^{-7}$), which confirms the correspondence $C = 1/(n\lambda)$ of Section 6.5 for the multinomial model. **(c)** The sum over the three classes of the weights of each feature is zero to eight decimals, as shown in Exercise 6.5, and adding the same constant to all the class weights changes the probabilities only at the level of rounding, $6 \cdot 10^{-16}$.
+
+# %%
+def solution_6_9():
+    from sklearn.datasets import load_diabetes
+    from sklearn.preprocessing import StandardScaler
+
+    diab = load_diabetes(as_frame=True)
+    y = diab.target.to_numpy()
+    Z0 = StandardScaler().fit_transform(diab.data)
+    names = list(diab.data.columns)
+    j = names.index("bmi")
+    n = len(y)
+    eps = np.random.default_rng(SEED).normal(size=n)
+    B_boot, lam_r = 300, 10.0
+
+    def fit_ols(Z, y):
+        Zc = Z - Z.mean(axis=0)
+        return np.linalg.lstsq(Zc, y - y.mean(), rcond=None)[0]
+
+    def fit_ridge(Z, y, lam):
+        Zc = Z - Z.mean(axis=0)
+        return np.linalg.solve(Zc.T @ Zc + lam * np.eye(Z.shape[1]), Zc.T @ (y - y.mean()))
+
+    rows = []
+    for rho in [0.0, 0.9, 0.99, 0.999]:
+        col = rho * Z0[:, j] + np.sqrt(1 - rho ** 2) * eps
+        col = (col - col.mean()) / col.std()
+        Z = np.column_stack([Z0, col])                                    # the last column is the constructed copy
+        Zc = Z - Z.mean(axis=0)
+        w = fit_ols(Z, y)
+        sigma2 = np.sum((y - y.mean() - Zc @ w) ** 2) / (n - Z.shape[1] - 1)
+        se = np.sqrt(sigma2 * np.linalg.inv(Zc.T @ Zc)[j, j])
+        vif = np.linalg.inv(np.corrcoef(Z, rowvar=False))[j, j]
+        rng = np.random.default_rng(SEED)
+        bo, so, br, sr = [], [], [], []
+        for _ in range(B_boot):
+            idx = rng.integers(0, n, n)
+            wo, wr = fit_ols(Z[idx], y[idx]), fit_ridge(Z[idx], y[idx], lam_r)
+            bo.append(wo[j]); so.append(wo[j] + wo[-1]); br.append(wr[j]); sr.append(wr[j] + wr[-1])
+        rows.append({"rho": rho, "VIF of bmi": vif, "SE formula": se, "sigma*sqrt(VIF/n)": np.sqrt(sigma2 * vif / n),
+                     "OLS: SD bmi": np.std(bo, ddof=1), "OLS: SD of sum": np.std(so, ddof=1),
+                     "ridge: SD bmi": np.std(br, ddof=1), "ridge: SD of sum": np.std(sr, ddof=1)})
+    print(pd.DataFrame(rows).set_index("rho").to_string(float_format=lambda v: f"{v:.2f}"))
+
+
+solution_6_9()
+
+# %% [markdown]
+# **(a)** For standardized columns $[(\mathbf{X}^\top\mathbf{X})^{-1}]_{jj} = \mathrm{VIF}_j/n$, so the standard error is exactly $\hat\sigma\sqrt{\mathrm{VIF}_j/n}$ (the two columns of the table agree). As the constructed copy becomes more similar to `bmi`, the VIF goes from 1.5 ($\rho = 0$) to 6.3, 56.7 and 559.2, and the standard error of the coefficient of `bmi` from 3.17 to 6.50, 19.42 and 60.96: a factor of 19.2, equal to $\sqrt{559.2/1.51}$.
+#
+# **(b)** The bootstrap standard deviations, 3.29, 6.18, 18.42 and 58.10, agree with the formula to within 10%: the theory holds. **(c)** The standard deviation of the **sum** of the two coefficients stays at about 3.3 for $\rho \ge 0.9$, however collinear the columns are. The data determine very well the *combined* effect of the two nearly identical features and cannot say how it is divided between them: the individual coefficients are unreliable, the prediction is not. (For $\rho = 0$ the sum has a larger deviation, 4.2, because the second column is then pure noise, which adds variance without information.)
+#
+# **(d)** Ridge ($\lambda = 10$) cuts the standard deviation of each coefficient (4.95 against 6.18 at $\rho = 0.9$, 5.29 against 18.42 at $\rho = 0.99$, 2.63 against 58.10 at $\rho = 0.999$) while the standard deviation of the sum stays at about 3.2: the penalty shares the weight between the two copies, which is the stable thing to do, and makes the individual coefficients readable again (at the price of a bias that the table does not show).
+
+# %%
+def solution_6_10():
+    import warnings
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import log_loss
+    from sklearn.model_selection import StratifiedKFold, cross_val_predict
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    X, y = load_breast_cancer(return_X_y=True)
+    y = 1 - y
+    C_grid = 10.0 ** np.arange(-3, 3.01, 0.5)
+    clip = lambda p: np.clip(p, 1e-15, 1 - 1e-15)
+    rows = []
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        for n in [30, 60, 120, 240]:
+            rng = np.random.default_rng(SEED)
+            rec = {"C_cv": [], "C_oracle": [], "ll_cv": [], "ll_oracle": [], "ll_unpen": []}
+            kept = 0
+            while kept < 30:
+                perm = rng.permutation(len(y))
+                tr, te = perm[:n], perm[n:]
+                if min(y[tr].sum(), n - y[tr].sum()) < 6:
+                    continue
+                kept += 1
+                cv = StratifiedKFold(5, shuffle=True, random_state=int(rng.integers(10 ** 6)))
+                cv_ll, te_ll = [], []
+                for C in C_grid:
+                    pipe = make_pipeline(StandardScaler(), LogisticRegression(C=C, max_iter=2000))
+                    p_cv = cross_val_predict(pipe, X[tr], y[tr], cv=cv, method="predict_proba")[:, 1]
+                    cv_ll.append(log_loss(y[tr], clip(p_cv)))
+                    te_ll.append(log_loss(y[te], clip(pipe.fit(X[tr], y[tr]).predict_proba(X[te])[:, 1])))
+                i_cv, i_or = int(np.argmin(cv_ll)), int(np.argmin(te_ll))
+                unpen = make_pipeline(StandardScaler(), LogisticRegression(C=np.inf, max_iter=5000)).fit(X[tr], y[tr])
+                rec["C_cv"].append(C_grid[i_cv]); rec["C_oracle"].append(C_grid[i_or])
+                rec["ll_cv"].append(te_ll[i_cv]); rec["ll_oracle"].append(te_ll[i_or])
+                rec["ll_unpen"].append(log_loss(y[te], clip(unpen.predict_proba(X[te])[:, 1])))
+            rows.append({"n": n, "median C (CV)": np.median(rec["C_cv"]), "median C (oracle)": np.median(rec["C_oracle"]),
+                         "lambda (CV)": 1 / (n * np.median(rec["C_cv"])), "lambda (oracle)": 1 / (n * np.median(rec["C_oracle"])),
+                         "test log-loss, CV choice": np.mean(rec["ll_cv"]), "oracle": np.mean(rec["ll_oracle"]), "unpenalized": np.mean(rec["ll_unpen"])})
+    print(pd.DataFrame(rows).set_index("n").to_string(float_format=lambda v: f"{v:.4g}"))
+
+
+solution_6_10()
+
+# %% [markdown]
+# The best $C$ is remarkably stable. The oracle value (the one that minimizes the test log-loss) is $C = 1$ for every $n$, and so is the median value chosen by cross-validation for $n \ge 60$; only for $n = 30$ is the CV choice erratic (median 20.8): with 30 patients the cross-validated log-loss is a noisy criterion, the winner's-curse effect of Chapter 5. Since $\lambda = 1/(Cn)$, a constant $C$ means that **the best penalty decreases like $1/n$**: $0.0167$, $0.0083$ and $0.0042$ for $n = 60, 120, 240$. In the formulation of Section 6.5, with the loss averaged over the examples, the right strength of the penalty falls as the training set grows, while in the formulation of scikit-learn ($C$ multiplies the *sum* of the losses) it stays the same. This is the quantitative form of the principle that more data can support a more flexible model.
+#
+# The test log-loss of the model selected by cross-validation decreases from 0.214 to 0.094, and the gap to the oracle shrinks from 0.07 to 0.006 as $n$ grows. The unpenalized model is much worse and does not improve with $n$ (0.387, 0.387, 0.483 and 0.846): with 30 standardized features the training sets are separable, and the solver stops at the iteration limit with large weights and overconfident probabilities (Section 6.4.4); its figures reflect the optimizer's stopping rule, not a property of the model.
