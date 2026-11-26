@@ -3440,3 +3440,434 @@ solution_11_10()
 
 # %% [markdown]
 # With only $83$ validation patients the intervals are wide. The permutation importance singles out `bmi` ($6.52$ RMSE units, interval $3.18$ to $9.91$) and `s5` ($5.75$, $1.89$ to $9.88$); `sex` is small but its interval is above zero ($0.37$, $0.15$ to $0.56$); `bp` ($2.10$) and `s3` ($0.83$) have intervals that contain zero. For (b), the result is not the one of Section 11.7.2: `s1` and `s2` have *negative* importances ($-0.89$ and $-0.63$) and the pair permuted together $-1.50$ (interval $-2.61$ to $-0.31$), that is, the forest does *better* on the validation patients when they are scrambled. They are correlated at $0.893$, but they carry no information that the other features lack, and a forest that splits on them fits noise; the MDI nevertheless gives them $0.046$ and $0.049$, about $10\%$ of the total. The rule of permuting a correlated group together matters when the group carries information, as the six size features of Breast Cancer do, and does not turn a useless group into an important one; a negative importance is a sign that the model is hurt by the feature. For (c) the contrast is sharp: the $20$ noise columns receive in all $0.264$ of the MDI (the largest, $0.0237$, against $0.2378$ for the best real feature), while the largest permutation importance among them is $0.29$ RMSE units against $8.26$ for the best real feature. For (d) the lasso at the one-SE value keeps `sex`, `bmi`, `bp`, `s3` and `s5`, the five features of Chapter 10; the permutation importance with an interval above zero gives `sex`, `bmi` and `s5`, and the three largest MDI are `bmi`, `s5` and `bp`. The three lists agree on `bmi` and `s5`, and differ on the features that the lasso keeps and the forest measures with an interval that includes zero, a difference that $83$ validation patients cannot resolve.
+
+# %% [markdown]
+# ## C.12 Chapter 12
+#
+# ### Manual exercises
+#
+# **Solution 12.1 — A fixed point of Lloyd's algorithm as bad as one likes.**
+#
+# (a) The mean of the left pair $(-a,\pm\frac12)$ is $(-a,0)$ and each of the two points is at distance $\frac12$ from it, so the pair contributes $2\cdot\frac14=\frac12$, and the same holds for the right pair: $J_{\mathrm{LR}}=1$. The mean of the upper pair $(\pm a,\frac12)$ is $(0,\frac12)$ and each point is at distance $a$ from it, so $J_{\mathrm{UD}}=2\cdot2a^2=4a^2$.
+#
+# (b) With the centers $(\mp a,0)$ the point $(-a,\pm\frac12)$ is at squared distance $\frac14$ from the left center and $4a^2+\frac14$ from the right one, so the assignment does not change, and the means of the two pairs are again the centers: a fixed point. With the centers $(0,\pm\frac12)$ the point $(\pm a,\frac12)$ is at squared distance $a^2$ from the upper center and $a^2+1$ from the lower one: again nothing moves.
+#
+# (c) The ratio of the two objectives is $J_{\mathrm{UD}}/J_{\mathrm{LR}}=4a^2$, which is as large as one likes. The left/right partition is optimal for $a>\frac12$: the diagonal pairs give $4a^2+1$, and the partitions into three points and one point give $\frac13(8a^2+2)$ (the sum of the squared distances of the three points divided by $3$), which exceeds $1$ as soon as $a^2>\frac18$. So *a fixed point of Lloyd's algorithm carries no guarantee on its objective*: the monotone decrease of Section 12.3 proves convergence, not quality.
+#
+# (d) The squared distances of the other three points from $(-a,-\frac12)$ are $1$ for $(-a,\frac12)$, $4a^2$ for $(a,-\frac12)$ and $4a^2+1$ for $(a,\frac12)$, with sum $8a^2+2$. The probability that the second center is $(-a,\frac12)$ is therefore
+# $$\frac{1}{8a^2+2}\ \ (=0.100\text{ for }a=1,\ 0.029\text{ for }a=2,\ 0.005\text{ for }a=5),\qquad\longrightarrow0\ \text{ as }a\to\infty .$$
+# With the centers $(-a,-\frac12)$ and $(-a,\frac12)$ the point $(a,-\frac12)$ is closer to the first (by $1$ in squared distance) and $(a,\frac12)$ to the second, so Lloyd's algorithm starts from the upper/lower partition, the bad fixed point. With either other second center the assignment is left/right, the optimum. Uniform seeding of two distinct points ends in the bad fixed point with probability $\frac13$ (two of the six pairs of points are a left or a right pair) whatever $a$, and $k$-means++ with probability $1/(8a^2+2)$, which vanishes as the configuration gets worse: this is the mechanism of Theorem 12.6.
+#
+# **Solution 12.2 — The $k$-means objective with a Gram matrix.**
+#
+# (a) $\mathbf{Z}^\top\mathbf{Z}=\mathrm{diag}(n_1,\dots,n_k)$, so $\mathbf{H}^\top\mathbf{H}=\mathrm{diag}(n_j^{-1/2})\,\mathrm{diag}(n_j)\,\mathrm{diag}(n_j^{-1/2})=\mathbf{I}_k$. The $j$-th column of $\mathbf{H}$ is $\mathbf{1}_{C_j}/\sqrt{n_j}$, so $(\mathbf{H}^\top\mathbf{K}\mathbf{H})_{jj}=\frac1{n_j}\mathbf{1}_{C_j}^\top\mathbf{K}\mathbf{1}_{C_j}=n_j\lVert\boldsymbol\mu_j\rVert^2$. By the hint, $J=\sum_j\big(\sum_{i\in C_j}\lVert\mathbf{x}_i\rVert^2-n_j\lVert\boldsymbol\mu_j\rVert^2\big)=\mathrm{tr}(\mathbf{K})-\mathrm{tr}(\mathbf{H}^\top\mathbf{K}\mathbf{H})$. (Checked numerically on the best $3$-means partition of Iris, with $J=78.85$.)
+#
+# (b) $\mathrm{tr}(\mathbf{K})$ does not depend on the clustering, so minimizing $J$ is maximizing $\mathrm{tr}(\mathbf{H}^\top\mathbf{K}\mathbf{H})$ over the matrices $\mathbf{H}$ of the form above. These matrices have orthonormal columns, so the maximum over *all* $\mathbf{H}\in\mathbb{R}^{n\times k}$ with $\mathbf{H}^\top\mathbf{H}=\mathbf{I}_k$ is at least as large; by Ky Fan's theorem it is $\sum_{j\le k}\lambda_j(\mathbf{K})$, attained by the $k$ leading eigenvectors. Hence $J^\ast\ge\sum_{j>k}\lambda_j(\mathbf{K})$. The bound is not tight: for the centered Iris data and $k=3$ the eigenvalues of $\mathbf{K}$ are $630.0,\ 36.2,\ 11.7,\ 3.6,\ \dots$ with $\mathrm{tr}(\mathbf{K})=681.4$, so the bound is $3.55$ against $J^\ast=78.85$. It improves to $\sum_{j\ge3}\lambda_j=15.20$ if one uses that for centered data the vector $\mathbf{1}/\sqrt{n}$ is in the span of the columns of $\mathbf{H}$ and in the null space of $\mathbf{K}$, so that only $k-1$ directions are free; it remains far from $78.85$. The relaxed solution is a continuous embedding, and one still has to round it to a partition, which is what the $k$-means step of Section 12.8.2 does.
+#
+# (c) With the Gram matrix of a kernel in place of $\mathbf{X}\mathbf{X}^\top$ the algorithm is **kernel $k$-means**: the centers live in the feature space and are never computed, the distance of $\mathbf{x}_i$ to the center of $C_j$ is $K_{ii}-\frac2{n_j}\sum_{l\in C_j}K_{il}+\frac1{n_j^2}\sum_{l,m\in C_j}K_{lm}$. Its relaxation uses the leading eigenvectors of $\mathbf{K}$, while the relaxation of the normalized cut in Section 12.8.2 uses the leading eigenvectors of $\mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}$, that is, of the similarity matrix *normalized by the degrees*. The two coincide when all the degrees are equal; in general Dhillon, Guan and Kulis (2004) show that the normalized cut is the objective of a *weighted* kernel $k$-means, with weight $d_i$ for the example $i$ and the kernel $\mathbf{D}^{-1}\mathbf{W}\mathbf{D}^{-1}$ (up to a diagonal shift that makes it positive semidefinite).
+#
+# **Solution 12.3 — The adjusted Rand index by hand.**
+#
+# (a) The pairs together in both partitions are $\sum_{ij}\binom{n_{ij}}2=\binom32+0+0+\binom32=6$. Each partition has two classes of $4$, so it has $12$ pairs together and $28-12=16$ pairs apart; $6$ pairs are together in both, $(12-6)+(12-6)=12$ are together in exactly one, and $28-(12+12-6)=10$ are apart in both. The partitions agree on $6+10=16$ pairs: $\mathrm{RI}=16/28=0.571$. The expected number of pairs together in both under independence is $12\cdot12/28=5.143$, so
+# $$\mathrm{ARI}=\frac{6-5.143}{\frac12(12+12)-5.143}=\frac{0.857}{6.857}=\frac18=0.125 .$$
+#
+# (b) Most of the agreement of the Rand index comes from the $10$ pairs that are apart in both partitions, and two unrelated partitions into two classes of four also have many such pairs: the expected value of $\mathrm{RI}$ under independence is $(28+2\cdot5.143-24)/28=0.510$. The observed $0.571$ is only $0.061$ above that, out of the $0.490$ that separates chance from perfect agreement: $0.061/0.490=0.125$, the ARI.
+#
+# (c) The margins fix $n_{11}=k$, $n_{12}=n_{21}=4-k$, $n_{22}=k$. The table $\begin{pmatrix}2&2\\2&2\end{pmatrix}$ has $\sum_{ij}\binom{n_{ij}}2=4$ pairs together in both, below the $5.143$ expected, so
+# $$\mathrm{ARI}=\frac{4-5.143}{12-5.143}=-\frac16=-0.167,\qquad \mathrm{RI}=\frac{28+8-24}{28}=0.429 .$$
+# This is the least favorable table with these margins ($k=0$ and $k=4$ give $\mathrm{ARI}=1$, $k=1$ and $k=3$ give $0.125$): each class of the first partition is split evenly by the second, which is *less* agreement than chance.
+#
+# **Solution 12.4 — Two triangles and a bridge.**
+#
+# (a) The degrees are $(2,2,3,3,2,2)$ and
+# $$\mathbf{L}=\begin{pmatrix}2&-1&-1&0&0&0\\-1&2&-1&0&0&0\\-1&-1&3&-1&0&0\\0&0&-1&3&-1&-1\\0&0&0&-1&2&-1\\0&0&0&-1&-1&2\end{pmatrix}.$$
+#
+# (b) Only the bridge crosses: $\mathrm{cut}(A,\bar A)=1$. $\mathrm{RatioCut}=1\cdot(\frac13+\frac13)=\frac23$, and since $\mathrm{vol}(A)=\mathrm{vol}(\bar A)=7$, $\mathrm{Ncut}=1\cdot(\frac17+\frac17)=\frac27=0.286$. For $\mathbf{f}=(1,1,1,-1,-1,-1)$, $\mathbf{f}^\top\mathbf{L}\mathbf{f}=\sum_{\text{edges}}(f_i-f_j)^2$ has the single nonzero term $(1-(-1))^2=4$, and $n\cdot\mathrm{RatioCut}=6\cdot\frac23=4$: the identity of Proposition 12.16(a). Moreover $\mathbf{f}^\top\mathbf{1}=0$ and $\lVert\mathbf{f}\rVert^2=6=n$, as the proposition requires.
+#
+# (c) For $\mathbf{v}=(a,a,b,-b,-a,-a)$ the equations of the vertices $1$ and $3$ are $(\mathbf{L}\mathbf{v})_1=2a-a-b=\lambda a$ and $(\mathbf{L}\mathbf{v})_3=3b-2a+b=\lambda b$. From the first, $b=(1-\lambda)a$; inserting it in the second, $4(1-\lambda)-2=\lambda(1-\lambda)$, that is,
+# $$\lambda^2-5\lambda+2=0,\qquad\lambda=\frac{5\mp\sqrt{17}}{2}=0.4384\ \text{ or }\ 4.5616 .$$
+# The smaller is $\lambda_2$ (the eigenvalues of $\mathbf{L}$ are $0,\ 0.4384,\ 3,\ 3,\ 3,\ 4.5616$, checked numerically), and $\lambda_2=0.438\le\mathrm{RatioCut}=0.667$, as the relaxation bound of Section 12.8.2 requires. The Fiedler vector is proportional to $(1,1,0.562,-0.562,-1,-1)$, since $b=(1-\lambda_2)a=0.562\,a$: its signs recover exactly the two triangles, which is the cut of minimum RatioCut here (every other cut of this graph removes at least two edges).
+#
+# **Solution 12.5 — Harmonic functions and random walks.**
+#
+# (a) The system (12.6) says $d_if_i=\sum_jw_{ij}f_j$ for every unlabeled $i$: $f_i$ is the average of the values of its neighbors, weighted by $w_{ij}$. First, $\mathbf{L}_{uu}$ is invertible: for the auxiliary vector $\mathbf{f}=(\mathbf{0},\mathbf{f}_u)$, which vanishes on the labeled vertices, $\mathbf{f}_u^\top\mathbf{L}_{uu}\mathbf{f}_u=\mathbf{f}^\top\mathbf{L}\mathbf{f}=\frac12\sum w_{ij}(f_i-f_j)^2\ge0$, with equality only if $\mathbf{f}$ is constant on the connected graph, hence zero. Now let $M$ be the maximum of $f$ over all vertices and suppose it is attained at an unlabeled vertex $i$ with $M>1$. Then $f_i$ is an average of values at most $M$, so all its neighbors have value $M$; repeating along a path to a labeled vertex, where the value is at most $1<M$, gives a contradiction. Hence $f\le1$ and, by the same argument, $f\ge0$. For several classes each column of the score matrix is harmonic with labels in $\{0,1\}$, hence in $[0,1]$, and the sum $\mathbf{s}$ of the columns solves $\mathbf{L}_{uu}\mathbf{s}=\mathbf{W}_{ul}\mathbf{1}_l$ (the labeled rows of the one-hot matrix sum to $1$); since $\mathbf{L}\mathbf{1}=\mathbf{0}$, the vector $\mathbf{1}_u$ solves the same system, and by invertibility $\mathbf{s}=\mathbf{1}_u$.
+#
+# (b) Conditioning on the first step, $h_i=\sum_jP_{ij}h_j$ for an unlabeled $i$, with $h_j=f_j\in\{0,1\}$ at a labeled vertex (the walk stops there). Multiplying by $d_i$: $d_ih_i-\sum_{j\in u}w_{ij}h_j=\sum_{j\in l}w_{ij}f_j$, that is, $\mathbf{L}_{uu}\mathbf{h}_u=\mathbf{W}_{ul}\mathbf{f}_l$, the system (12.6). On a finite connected graph with a labeled vertex the walk reaches the labeled set with probability $1$, so $\mathbf{h}$ is well defined; the solution of the system is unique, so $\mathbf{h}_u=\mathbf{f}_u$.
+#
+# (c) On the path with $f_1=0$ and $f_5=1$ the harmonic conditions are $f_2=\frac12(f_1+f_3)$, $f_3=\frac12(f_2+f_4)$, $f_4=\frac12(f_3+f_5)$, solved by linear interpolation: $\mathbf{f}=(0,\ 0.25,\ 0.5,\ 0.75,\ 1)$, the gambler's ruin probabilities $(i-1)/4$ (checked by solving $\mathbf{L}_{uu}\mathbf{f}_u=\mathbf{W}_{ul}\mathbf{f}_l$).
+#
+# (d) If a connected component has no labeled vertex, the block of $\mathbf{L}_{uu}$ for its vertices is the Laplacian of the component, which is singular (the indicator of the component is in its null space), and the right-hand side vanishes there because no edge leaves the component. The system has infinitely many solutions, one for each constant on the component: the labels say nothing about it, and the random walk never reaches a labeled vertex, so $\mathbf{h}$ is not defined. In practice the graph must be connected (a larger $m$ for the nearest-neighbor graph, Section 12.8.4) or each component must receive a label; this is the situation of the examples that no label can reach in Section 12.9.2.
+
+# %% [markdown]
+# ### Python exercises
+
+# %%
+def solution_12_6():
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.metrics import adjusted_rand_score, silhouette_score
+    from sklearn.preprocessing import StandardScaler
+
+    bc = load_breast_cancer()
+    y = 1 - bc.target                                              # malignant = 1, as in the chapter
+    X = StandardScaler().fit_transform(bc.data)
+    ks = list(range(1, 9))
+
+    def gap_statistic(X, ks, B=20):
+        rng = np.random.default_rng(SEED)
+        lo, hi = X.min(axis=0), X.max(axis=0)
+        log_j = np.array([np.log(KMeans(k, n_init=10, random_state=SEED).fit(X).inertia_) for k in ks])
+        ref = np.array([[np.log(KMeans(k, n_init=3, random_state=SEED).fit(rng.uniform(lo, hi, X.shape)).inertia_) for k in ks] for _ in range(B)])
+        gap, s = ref.mean(axis=0) - log_j, ref.std(axis=0) * np.sqrt(1 + 1 / B)
+        chosen = next((ks[i] for i in range(len(ks) - 1) if gap[i] >= gap[i + 1] - s[i + 1]), None)
+        return gap, chosen
+
+    def stability(X, k, reps=15):
+        rng = np.random.default_rng(SEED)
+        out = []
+        for _ in range(reps):
+            perm = rng.permutation(len(X))
+            half = len(X) // 2
+            m1 = KMeans(k, n_init=3, random_state=int(rng.integers(10 ** 9))).fit(X[perm[:half]])
+            m2 = KMeans(k, n_init=3, random_state=int(rng.integers(10 ** 9))).fit(X[perm[half:2 * half]])
+            out.append(adjusted_rand_score(m1.predict(X), m2.predict(X)))
+        return np.mean(out)
+
+    models = {k: KMeans(k, n_init=10, random_state=SEED).fit(X) for k in ks}
+    gap, k_gap = gap_statistic(X, ks)
+    table = pd.DataFrame({"k": ks, "J": [models[k].inertia_ for k in ks], "silhouette": [np.nan] + [silhouette_score(X, models[k].labels_) for k in ks[1:]],
+                          "gap": gap, "stability": [np.nan] + [stability(X, k) for k in ks[1:]], "ARI with the diagnosis": [adjusted_rand_score(y, models[k].labels_) for k in ks]})
+    print(table.to_string(index=False, float_format=lambda v: f"{v:.3f}" if abs(v) < 100 else f"{v:.1f}"))
+    print(f"\nbest silhouette: k = {int(table.loc[table['silhouette'].idxmax(), 'k'])}; best stability: k = {int(table.loc[table['stability'].idxmax(), 'k'])}; "
+          f"gap rule: " + (f"k = {k_gap}" if k_gap else "no k up to 8 satisfies the rule"))
+
+    # (b) the scale of the features at k = 2
+    rows = []
+    for name, Z in [("standardized", X), ("raw", bc.data), ("min-max", (bc.data - bc.data.min(0)) / np.ptp(bc.data, axis=0))]:
+        lab = KMeans(2, n_init=10, random_state=SEED).fit_predict(Z)
+        groups = sorted(((int((lab == c).sum()), round(float(y[lab == c].mean()), 3)) for c in range(2)), reverse=True)
+        rows.append({"features": name, "ARI with the diagnosis": adjusted_rand_score(y, lab), "clusters (size, malignant share)": groups})
+    print("\n" + pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    raw = bc.data.std(axis=0)
+    print("raw features with the largest standard deviation:", ", ".join(f"{bc.feature_names[j]} ({raw[j]:.0f})" for j in np.argsort(-raw)[:3]))
+
+    # (c) the features that separate the two clusters of the standardized solution
+    m2 = models[2]
+    diff = np.abs(m2.cluster_centers_[0] - m2.cluster_centers_[1])
+    top = np.argsort(-diff)[:6]
+    print("\nstandardized solution, k = 2: features with the largest difference of the cluster means (standard-deviation units)")
+    for j in top:
+        print(f"  {bc.feature_names[j]:<24s} {diff[j]:.2f}")
+    print(f"smallest differences: " + ", ".join(f"{bc.feature_names[j]} {diff[j]:.2f}" for j in np.argsort(diff)[:3]))
+    print(f"mean difference over the 30 features {diff.mean():.2f}; distance between the two centers {np.linalg.norm(m2.cluster_centers_[0] - m2.cluster_centers_[1]):.2f}")
+
+
+solution_12_6()
+
+# %% [markdown]
+# For (a), the objective gives no clear elbow beyond $k=2$: $J^\ast(k)$ falls by $5475$ from $k=1$ to $k=2$ and then by $1534$, $803$, $700$, $588$, $430$ and $286$. The silhouette is largest at $k=2$ ($0.343$, against $0.314$ at $k=3$) and so is the stability ($0.893$, against $0.835$ at $k=3$ and $0.591$ at $k=4$). The gap statistic grows from $1.64$ to $2.28$ without leveling off, so that the one-standard-error rule selects no $k$ up to $8$; as on the data sets of Section 12.5, the gap statistic is uninformative here. The silhouette, the stability and the largest drop of $J^\ast$ point to $k=2$, which is also the number of diagnoses; the gap statistic points to none. The partition at $k=2$ has ARI $0.654$ with the diagnosis: clusters of $375$ and $194$ patients with $9.6\%$ and $90.7\%$ malignant tumors. The ARI of the partitions with $3$ and $4$ clusters is lower ($0.511$ and $0.552$), as it must be when the labels have two classes.
+#
+# For (b) the scale of the features matters, as in Section 12.3.5. On the raw features the largest standard deviations are those of the area features (`worst area` $569$, `mean area` $352$, `area error` $45$, against values of at most a few units for most of the others), so that the distances are almost entirely distances in area: the ARI falls to $0.491$, with clusters of $438$ patients ($18.7\%$ malignant, about $82$ of the $212$ malignant tumors) and $131$ patients ($99.2\%$ malignant). With the features scaled to $[0,1]$ the ARI is $0.730$ (clusters of $380$ and $189$ patients, $8.4\%$ and $95.2\%$ malignant), *higher* than the $0.654$ of the standardized features. No scaling is best in general (on Wine the standardized features were the best, with ARI $0.897$ against $0.854$ for $[0,1]$), and choosing the scaling by its ARI with the diagnosis would use the labels that the clustering is supposed not to see.
+#
+# For (c), the six features with the largest difference of the two cluster means, in standard deviations of the feature, are `mean concave points` ($1.72$), `worst concave points` ($1.70$), `mean concavity` ($1.70$), `worst concavity` ($1.57$), `worst perimeter` ($1.56$) and `mean compactness` ($1.54$): the clusters differ above all in the irregularity of the contour of the nuclei (concavity, concave points, compactness) and in their size. The features that contribute least are standard-error features, `texture error` ($0.06$), `smoothness error` ($0.07$) and `symmetry error` ($0.22$). The mean difference over the $30$ features is $1.10$ and the two centers are $6.54$ apart.
+
+# %%
+def solution_12_7():
+    from sklearn.cluster import KMeans, MiniBatchKMeans
+    from sklearn.datasets import load_sample_image
+
+    pix = load_sample_image("china.jpg").reshape(-1, 3).astype(float) / 255
+    k = 16
+    rng0 = np.random.default_rng(SEED)
+    sub = pix[rng0.choice(len(pix), 20000, replace=False)]                # the fixed evaluation subsample
+    pool = pix[rng0.choice(len(pix), 2000, replace=False)]                 # a small pool for the k-means++ seeding of every method
+
+    def distortion(C):
+        return float(((sub[:, None, :] - C[None]) ** 2).sum(-1).min(axis=1).mean())
+
+    def pp_seeds(P, rng):
+        C = [P[rng.integers(len(P))]]
+        for _ in range(k - 1):
+            d2 = ((P[:, None, :] - np.array(C)[None]) ** 2).sum(-1).min(axis=1)
+            C.append(P[rng.choice(len(P), p=d2 / d2.sum())])
+        return np.array(C)
+
+    def minibatch(b, iters, seed, record):
+        """Sculley's algorithm. The sequential update mu <- mu + (x - mu)/v, with v incremented at each assigned pixel,
+        is the running mean of all the pixels ever assigned to the center, so a whole batch can be processed at once."""
+        rng = np.random.default_rng(seed)
+        C = pp_seeds(pool, rng)
+        v = np.zeros(k)
+        hist = {}
+        for t in range(1, iters + 1):
+            batch = pix[rng.integers(0, len(pix), b)]
+            nearest = ((batch[:, None, :] - C[None]) ** 2).sum(-1).argmin(axis=1)
+            cnt = np.bincount(nearest, minlength=k)
+            sums = np.zeros((k, 3))
+            np.add.at(sums, nearest, batch)
+            hit = cnt > 0
+            C[hit] = (v[hit, None] * C[hit] + sums[hit]) / (v[hit] + cnt[hit])[:, None]
+            v += cnt
+            if t in record:
+                hist[t] = distortion(C)
+        return hist
+
+    def lloyd(seed):
+        """Lloyd's algorithm on the subsample; returns the distortion after every iteration."""
+        C = pp_seeds(pool, np.random.default_rng(seed))
+        hist = []
+        for _ in range(300):
+            lab = ((sub[:, None, :] - C[None]) ** 2).sum(-1).argmin(axis=1)
+            newC = np.array([sub[lab == j].mean(axis=0) if (lab == j).any() else C[j] for j in range(k)])
+            hist.append(distortion(newC))
+            if np.allclose(newC, C, atol=1e-12):
+                break
+            C = newC
+        return np.array(hist)
+
+    reps, iters = 5, 2000
+    record = set(range(10, iters + 1, 10))
+    cost_it = len(sub) * k                                              # distance evaluations of one Lloyd iteration
+    ref = KMeans(k, n_init=10, random_state=SEED).fit(sub)
+    ll = [lloyd(r) for r in range(reps)]
+    d_lloyd = np.mean([h[-1] for h in ll])
+    to_1pct = [int(np.argmax(h <= 1.01 * h[-1])) + 1 for h in ll]
+    print(f"Lloyd on the {len(sub):,} pixels ({reps} seedings): final distortion {d_lloyd:.5f} (best of ten starts of scikit-learn: {distortion(ref.cluster_centers_):.5f});"
+          f" {np.mean([len(h) for h in ll]):.0f} iterations to convergence, {np.mean(to_1pct):.0f} to come within 1% of the final value; {cost_it:,} distance evaluations per iteration")
+    mb = {b: [minibatch(b, iters, 1000 + r, record) for r in range(reps)] for b in (100, 1000)}
+    rows = [{"batch size": b, **{f"after {t} it.": np.mean([h[t] for h in H]) for t in (10, 50, 100, 500, 2000)}} for b, H in mb.items()]
+    print("\ndistortion of the mini-batch algorithm (mean over the repetitions):")
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.5f}"))
+    sk = MiniBatchKMeans(k, batch_size=1000, n_init=1, random_state=SEED).fit(sub)
+    print(f"scikit-learn MiniBatchKMeans (batch 1000, fitted on the subsample): distortion {distortion(sk.cluster_centers_):.5f}, {sk.n_steps_} mini-batch steps = {sk.n_steps_ * 1000 * k:,} distance evaluations")
+    print("\ndistance evaluations needed to come within 1% and within 3% of the final distortion of Lloyd (the first multiple of 10 iterations that gets there):")
+    print(f"  Lloyd: {np.mean(to_1pct) * cost_it:,.0f} for 1% (all {reps} runs)")
+    for b, H in mb.items():
+        for tol in (1.01, 1.03):
+            hit = [min(t for t in record if h[t] <= tol * d_lloyd) for h in H if any(h[t] <= tol * d_lloyd for t in record)]
+            print(f"  mini-batch, b = {b}, within {100 * (tol - 1):.0f}%: reached in {len(hit)} of {reps} runs"
+                  + (f", after {np.mean(hit):.0f} iterations on average = {np.mean(hit) * b * k:,.0f} distance evaluations" if hit else ""))
+    fig, ax = plt.subplots()
+    ts = np.array(sorted(record))
+    for b, col in [(100, BLUE), (1000, ORANGE)]:
+        ax.plot(ts * b * k, np.mean([[h[t] for t in ts] for h in mb[b]], axis=0), color=col, label=f"mini-batch, b = {b} (mean of {reps})")
+    T = max(len(h) for h in ll)
+    h = np.mean([np.r_[h, [h[-1]] * (T - len(h))] for h in ll], axis=0)       # a run that has converged keeps its final value
+    ax.plot(np.arange(1, T + 1) * cost_it, h, color=GREEN, marker="o", ms=3, label=f"Lloyd (mean of {reps})")
+    ax.set_xscale("log"); ax.set_yscale("log")
+    ax.set(xlabel="distance evaluations", ylabel="distortion on the subsample", title="mini-batch k-means and Lloyd, k = 16")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=3, fontsize=9, frameon=False)
+    plt.show()
+
+
+solution_12_7()
+
+# %% [markdown]
+# The sequential update of Sculley's algorithm, $\boldsymbol\mu_j\leftarrow\boldsymbol\mu_j+(\mathbf{x}-\boldsymbol\mu_j)/v_j$ with $v_j$ incremented at every pixel assigned to the center, is the running mean of all the pixels ever assigned to it, so that a whole batch can be processed at once by $\boldsymbol\mu_j\leftarrow(v_j\boldsymbol\mu_j+\sum\mathbf{x})/(v_j+m_j)$, where $m_j$ pixels of the batch go to the center $j$; the code does so, and the table below is identical, to the digits shown, to the one obtained with a loop over the pixels. All the methods are seeded by $k$-means++ on the same pool of $2000$ pixels, with five seedings.
+#
+# Lloyd's algorithm on the subsample of $20{,}000$ pixels converges in $55$ iterations on average, to a distortion of $0.00554$ (about $320{,}000$ distance evaluations per iteration). The best of ten $k$-means++ starts of scikit-learn reaches $0.00526$: the difference between local minima ($5\%$) is as large as the differences between the methods below, so that the comparison is a comparison of orders of magnitude and not of the last digit. The mini-batch algorithm has these distortions (mean of five runs):
+#
+# | batch | after $10$ it. | $50$ | $100$ | $500$ | $2000$ |
+# |---|---|---|---|---|---|
+# | $b=100$ | $0.00621$ | $0.00589$ | $0.00581$ | $0.00564$ | $0.00558$ |
+# | $b=1000$ | $0.00618$ | $0.00585$ | $0.00579$ | $0.00570$ | $0.00566$ |
+#
+# At the same number of *iterations* the larger batch is slightly better up to $100$ iterations and worse from $500$ on, which is consistent with the fact that the steps $1/v_j$ shrink ten times faster when ten times more pixels are assigned at each iteration; at the same number of *distance evaluations* (an iteration costs $bk=1{,}600$ evaluations for $b=100$ and $16{,}000$ for $b=1000$) the small batch is far better, as the figure shows. To come within $1\%$ of the final distortion of Lloyd's algorithm, Lloyd needs $12$ iterations, that is, $3.97$ million distance evaluations (all five runs); the mini-batch algorithm with $b=100$ gets there in $3$ of the $5$ runs, after $517$ iterations on average, that is, $0.83$ million evaluations, about one fifth; with $b=1000$ only $2$ runs get there, after $200$ iterations, $3.2$ million evaluations, a small saving for the runs that get there. Within $3\%$ the algorithm with $b=100$ succeeds in all five runs after $278$ iterations ($0.44$ million evaluations) and the one with $b=1000$ in four runs after $338$ iterations ($5.4$ million). The mini-batch algorithm is thus a way to a *rough* solution at a fraction of the cost, and it does not converge to the exact local minimum: its distortion after $2000$ iterations is still above that of Lloyd's algorithm. scikit-learn's `MiniBatchKMeans` ($b=1000$, its own greedy $k$-means++ seeding and its own stopping rule, $55$ steps, $0.88$ million evaluations) reaches $0.00543$; its seeding differs from ours, so this number is only indicative. The count of distance evaluations does not include the seeding or the evaluation of the distortion, and it is machine independent, unlike running times.
+
+# %%
+def solution_12_8():
+    from scipy.special import logsumexp
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import load_iris
+    from sklearn.metrics import adjusted_rand_score
+
+    X = load_iris().data
+    km = KMeans(3, n_init=10, random_state=SEED).fit(X)
+    C0 = km.cluster_centers_
+    rows = []
+    for s2 in (4, 1, 0.25, 0.0625, 0.0156):
+        M = C0.copy()
+        for it in range(1, 200001):
+            d2 = ((X[:, None, :] - M[None]) ** 2).sum(-1)
+            logr = -d2 / (2 * s2)
+            R = np.exp(logr - logsumexp(logr, axis=1, keepdims=True))      # responsibilities, equal weights
+            M_new = (R.T @ X) / R.sum(axis=0)[:, None]                     # M-step: weighted means
+            moved = np.linalg.norm(M_new - M, axis=1).max()
+            M = M_new
+            if moved < 1e-8:
+                break
+        d2 = ((X[:, None, :] - M[None]) ** 2).sum(-1)
+        logr = -d2 / (2 * s2)
+        R = np.exp(logr - logsumexp(logr, axis=1, keepdims=True))
+        rows.append({"sigma^2": s2, "mean max r": R.max(axis=1).mean(), "EM iterations": it,
+                     "ARI with k-means": adjusted_rand_score(km.labels_, R.argmax(axis=1)),
+                     "max |mu - mu_kmeans|": np.linalg.norm(M - C0, axis=1).max(),
+                     "examples with max r < 0.9": int((R.max(axis=1) < 0.9).sum())})
+    print(f"Iris, k-means (best of 10 starts): J = {km.inertia_:.4f}; within-cluster variance per coordinate J/(np) = {km.inertia_ / X.size:.4f}")
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.5g}"))
+
+
+solution_12_8()
+
+# %% [markdown]
+# The scale of the problem is the within-cluster variance of the $k$-means solution, $J/(np)=78.85/600=0.131$ per coordinate: $\sigma^2=4$ and $1$ describe components much blurrier than the clusters, $\sigma^2=0.0156$ much sharper. As $\sigma^2$ decreases the mean largest responsibility rises from $0.443$ (not far above $1/3$, the value of equal responsibilities) through $0.751$, $0.950$ and $0.994$ to $0.999$, and the number of flowers whose largest responsibility is below $0.9$ falls from $150$ (all) to $100$, $25$, $2$ and $1$. The hard assignments of the mixture agree more and more with the $k$-means partition (ARI $0.485$, $0.866$, $0.961$, $0.980$, $1.000$) and the means approach the $k$-means centers (largest distance $1.90$, $0.72$, $0.153$, $0.019$, $0.0067$). This is Proposition 12.12: in the limit $\sigma^2\to0$ the responsibilities become $0$ or $1$ and the M-step becomes Lloyd's update. For a finite $\sigma^2$ the equality is never exact: at $\sigma^2=0.0156$ one flower still has a largest responsibility below $0.9$ and the means differ from the $k$-means centers by $0.0067$. The number of EM iterations until the means move by less than $10^{-8}$ falls from $160$ to $78$, $36$ and $17$ and is $31$ for the smallest variance; we do not interpret the last value.
+
+# %%
+def solution_12_9():
+    from sklearn.cluster import KMeans
+    from sklearn.datasets import load_digits
+    from sklearn.metrics import adjusted_rand_score, pairwise_distances
+    from sklearn.neighbors import NearestNeighbors, kneighbors_graph
+
+    dig = load_digits()
+    X, y = dig.data / 16, dig.target
+
+    def laplacians(W):
+        d = W.sum(axis=1)
+        return np.eye(len(W)) - W / np.sqrt(d)[:, None] / np.sqrt(d)[None, :], d
+
+    def shi_malik(W, k=10):
+        L_sym, d = laplacians(W)
+        ev, U = np.linalg.eigh(L_sym)
+        V = U[:, :k] / np.sqrt(d)[:, None]
+        return KMeans(k, n_init=10, random_state=SEED).fit_predict(V), ev, d
+
+    D = pairwise_distances(X)
+    delta = float(np.median(NearestNeighbors(n_neighbors=11).fit(X).kneighbors(X)[0][:, 10]))
+    print(f"median distance to the 10th neighbor: {delta:.3f}; median distance between two examples: {np.median(D[np.triu_indices(len(X), 1)]):.3f}")
+    rows, spectra = [], {}
+    for c in (0.5, 1, 2, 4):
+        sigma = c * delta
+        W = np.exp(-D ** 2 / (2 * sigma ** 2))
+        np.fill_diagonal(W, 0)
+        lab, ev, d = shi_malik(W)
+        spectra[c] = ev
+        sizes = np.bincount(lab, minlength=10)
+        rows.append({"c": c, "sigma": sigma, "ARI": adjusted_rand_score(y, lab), "smallest / largest cluster": f"{sizes.min()} / {sizes.max()}", "mean degree d": d.mean(), "min d": d.min(),
+                     "lambda_2": ev[1], "lambda_10": ev[9], "lambda_11": ev[10], "gap l11 - l10": ev[10] - ev[9], "lambda_max": ev[-1]})
+    A = kneighbors_graph(X, 10, mode="connectivity", include_self=False)
+    Wk = ((A + A.T) > 0).astype(float).toarray()
+    lab, ev, d = shi_malik(Wk)
+    sizes = np.bincount(lab, minlength=10)
+    spectra["10-NN"] = ev
+    rows.append({"c": "10-NN", "sigma": np.nan, "ARI": adjusted_rand_score(y, lab), "smallest / largest cluster": f"{sizes.min()} / {sizes.max()}", "mean degree d": d.mean(), "min d": d.min(),
+                 "lambda_2": ev[1], "lambda_10": ev[9], "lambda_11": ev[10], "gap l11 - l10": ev[10] - ev[9], "lambda_max": ev[-1]})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    print("\nsmallest 12 eigenvalues of L_sym:")
+    for c, e in spectra.items():
+        print(f"  c = {c}:" if c != "10-NN" else "  10-NN: ", np.array2string(e[:12], precision=4, max_line_width=200))
+    print("fraction of the weights larger than 0.01 (off-diagonal), by c:", {c: round(float((np.exp(-D ** 2 / (2 * (c * delta) ** 2))[np.triu_indices(len(X), 1)] > 0.01).mean()), 4) for c in (0.5, 1, 2, 4)})
+
+
+solution_12_9()
+
+# %% [markdown]
+# The median distance of a digit to its tenth neighbor is $\bar\delta=1.431$, against a median distance between two digits of $3.068$. The results, with the $10$-nearest-neighbor graph of Section 12.8.4 in the last row:
+#
+# | graph | ARI | mean degree | smallest degree | $\lambda_2$ | $\lambda_{10}$ | $\lambda_{11}$ | gap $\lambda_{11}-\lambda_{10}$ | share of weights $>0.01$ |
+# |---|---|---|---|---|---|---|---|---|
+# | $c=0.5$ ($\sigma=0.715$) | $0.546$ | $8.2$ | $0.24$ | $0.053$ | $0.165$ | $0.238$ | $0.0723$ | $6.0\%$ |
+# | $c=1$ ($\sigma=1.431$) | $0.639$ | $235$ | $83$ | $0.648$ | $0.891$ | $0.896$ | $0.0048$ | $99.9\%$ |
+# | $c=2$ ($\sigma=2.861$) | $0.654$ | $1028$ | $791$ | $0.914$ | $0.980$ | $0.982$ | $0.0020$ | $100\%$ |
+# | $c=4$ ($\sigma=5.723$) | $0.652$ | $1558$ | $1458$ | $0.979$ | $0.996$ | $0.996$ | $0.0004$ | $100\%$ |
+# | $10$-NN | $0.757$ | $13.7$ | $10$ | $0.0028$ | $0.034$ | $0.037$ | $0.0035$ | — |
+#
+# The *largest gap* is that of the smallest bandwidth, $c=0.5$ ($0.072$, twenty times the gap of the nearest-neighbor graph), and it has the *worst* ARI ($0.546$, with clusters of $25$ and $544$ digits): the eigengap heuristic of Section 12.8.4, which looks for a large gap after the $k$-th eigenvalue, does not identify the best graph, because the gap is large here for a reason that has nothing to do with the digits (the eigenvalues $\lambda_2,\dots,\lambda_{10}$ are all between $0.05$ and $0.17$, and the next ones start at $0.24$). With this bandwidth the graph is the *almost disconnected* one: only $6\%$ of the pairs have a weight above $0.01$, the mean degree is $8.2$, and some digits are nearly isolated (the smallest degree is $0.24$, against $10$ for the nearest-neighbor graph, in which every vertex has at least ten edges of weight $1$). For $c=2$ and $c=4$ the graph is *almost complete*: all the weights are above $0.01$, the mean degree is $1028$ and $1558$ of a possible $1796$, and the spectrum of $\mathbf{L}_{\mathrm{sym}}$ is that of the complete graph, which has the eigenvalue $0$ once and $n/(n-1)=1.0006$ with multiplicity $n-1$: $\lambda_2$ is $0.914$ and $0.979$, $\lambda_{\max}$ is $1.001$, and the gap is $0.002$ and $0.0004$, so that the structure of the data hardly shows. The bandwidth $c=1$, the value suggested by the $10$-th neighbor distance, is already in the dense regime ($99.9\%$ of the weights above $0.01$, $\lambda_2=0.648$). The ARI is flat, between $0.64$ and $0.65$, for $c=1,2,4$, close to the $0.667$ of $k$-means on the pixels (Section 12.5); this is plausible, since for a very large $\sigma$ the Gaussian weight is $1-\lVert\mathbf{x}-\mathbf{x}'\rVert^2/2\sigma^2$ to first order, and the leading eigenvectors of the graph are those of the centered Gram matrix, the principal directions that Chapter 13 studies. None of the Gaussian graphs approaches the nearest-neighbor graph ($0.757$): a single bandwidth must serve regions of different density, while the neighbors of a digit are defined by rank and adapt to the local scale, which is the usual argument for preferring nearest-neighbor graphs (von Luxburg, 2007) and is consistent with this experiment.
+
+# %%
+def solution_12_10():
+    from sklearn.datasets import load_digits
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
+
+    dig = load_digits()
+    X, y = dig.data / 16, dig.target
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=SEED, stratify=y)
+    per, reps, rounds, K = 10, 20, 10, 10
+    taus = (0.7, 0.9, 0.99)
+    fit = lambda A, b: LogisticRegression(C=1, max_iter=2000).fit(A, b)
+
+    def self_training(idx, tau):
+        lab = np.zeros(len(Xtr), bool)
+        lab[idx] = True
+        yhat = ytr.copy()            # true labels on idx, pseudo-labels on the added examples; the other true labels are only used to measure
+        log = []
+        for _ in range(rounds):
+            model = fit(Xtr[lab], yhat[lab])
+            pool = np.where(~lab)[0]
+            P = model.predict_proba(Xtr[pool])
+            take = P.max(axis=1) >= tau
+            new, pseudo, conf = pool[take], P[take].argmax(axis=1), P[take].max(axis=1)
+            wrong = pseudo != ytr[new]
+            log.append({"added": len(new), "wrong": int(wrong.sum()), "conf_wrong": conf[wrong]})
+            yhat[new], lab[new] = pseudo, True
+        final = fit(Xtr[lab], yhat[lab])
+        added = np.setdiff1d(np.where(lab)[0], idx)
+        return log, final.score(Xte, yte), final.predict(Xte), np.bincount(yhat[added], minlength=K)
+
+    base, base_pred, runs = [], [], {tau: [] for tau in taus}
+    calib = []                       # confidence and correctness of the first model on the unlabeled examples
+    for r in range(reps):
+        rng = np.random.default_rng([SEED, per, r])
+        idx = np.concatenate([rng.choice(np.where(ytr == c)[0], per, replace=False) for c in range(K)])
+        m0 = fit(Xtr[idx], ytr[idx])
+        base.append(m0.score(Xte, yte))
+        base_pred.append(m0.predict(Xte))
+        pool = np.setdiff1d(np.arange(len(Xtr)), idx)
+        P0 = m0.predict_proba(Xtr[pool])
+        calib.append(pd.DataFrame({"conf": P0.max(axis=1), "ok": P0.argmax(axis=1) == ytr[pool]}))
+        for tau in taus:
+            runs[tau].append(self_training(idx, tau))
+    base = np.array(base)
+    se = lambda v: np.std(v, ddof=1) / np.sqrt(len(v))
+    print(f"logistic regression on the {per * K} labeled examples alone: test accuracy {base.mean():.4f} (s.e. {se(base):.4f}) over {reps} labeled sets")
+
+    for tau in taus:
+        res = runs[tau]
+        finals = np.array([f for _, f, _, _ in res])
+        added = np.array([[l["added"] for l in log] for log, *_ in res])
+        wrong = np.array([[l["wrong"] for l in log] for log, *_ in res])
+        print(f"\ntau = {tau}: test accuracy after {rounds} rounds {finals.mean():.4f}; paired difference with the baseline {np.mean(finals - base):+.4f} (s.e. {se(finals - base):.4f});"
+              f" pseudo-labels added over the rounds: {added.sum(axis=1).mean():.0f} of {len(Xtr) - per * K}, of which {wrong.sum(axis=1).mean():.1f} wrong")
+        if added.sum() == 0:
+            continue
+        rows = []
+        for t in range(rounds):
+            cw = np.concatenate([log[t]["conf_wrong"] for log, *_ in res])
+            rows.append({"round": t + 1, "added": added[:, t].mean(), "wrong": wrong[:, t].mean(),
+                         "pseudo-label accuracy": 1 - wrong[:, t].sum() / added[:, t].sum() if added[:, t].sum() else np.nan,
+                         "mean confidence of the wrong ones": cw.mean() if len(cw) else np.nan})
+        print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+
+    # the first round at tau = 0.7 and the calibration of the first model
+    cw = np.concatenate([log[0]["conf_wrong"] for log, *_ in runs[0.7]])
+    first_added = np.mean([log[0]["added"] for log, *_ in runs[0.7]])
+    print(f"\nfirst round, tau = 0.7: {first_added:.1f} pseudo-labels added per labeled set, of which {len(cw) / reps:.2f} wrong; the wrong ones have confidence "
+          f"{cw.mean():.3f} on average (largest {cw.max():.3f}, none above 0.9: {(cw >= 0.9).sum() == 0})")
+    c = pd.concat(calib)
+    c["bin"] = pd.cut(c["conf"], [0, 0.5, 0.7, 0.8, 0.9, 0.99, 1.0001], right=False)
+    t = c.groupby("bin", observed=True).agg(examples=("ok", lambda v: len(v) / reps), accuracy=("ok", "mean"), mean_confidence=("conf", "mean"))
+    print("\nthe first model on the unlabeled examples, by confidence (mean over the labeled sets):")
+    print(t.to_string(float_format=lambda v: f"{v:.3f}"))
+    print(f"overall: accuracy {c['ok'].mean():.3f}, mean confidence {c['conf'].mean():.3f}")
+
+    # which classes are added at tau = 0.9, and what happens to the recall of each class
+    pool_size = np.bincount(ytr, minlength=K) - per
+    added_cls = np.mean([a for *_, a in runs[0.9]], axis=0)
+    rec = lambda preds: np.mean([[np.mean(p[yte == k] == k) for k in range(K)] for p in preds], axis=0)
+    tab = pd.DataFrame({"class": range(K), "unlabeled": pool_size, "added (tau = 0.9)": added_cls, "test recall, labeled only": rec(base_pred),
+                        "test recall, after self-training": rec([p for _, _, p, _ in runs[0.9]])})
+    print("\ntau = 0.9, mean over the labeled sets:")
+    print(tab.to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+
+
+solution_12_10()
+
+# %% [markdown]
+# The logistic regression on the $100$ labeled examples alone has a test accuracy of $0.8924$ (standard error $0.0035$ over the $20$ labeled sets). With self-training the answers to the questions of the exercise are these.
+#
+# **The threshold decides everything, and not through the quality of the pseudo-labels.** For $\tau=0.99$ *no* example is ever added: the first model has no unlabeled example with a largest probability of $0.99$ or more, the labeled set does not change in ten rounds, and the result is that of the baseline. For $\tau=0.9$ the algorithm adds $588$ of the $1247$ unlabeled examples over the ten rounds, and only $2.1$ of those pseudo-labels are wrong ($99.6\%$ correct; $67$ are added in the first round, none of them wrong): the pseudo-labels are excellent, and yet the test accuracy *falls* to $0.8628$, a paired difference of $-0.0297$ (standard error $0.0033$). For $\tau=0.7$ the algorithm adds $1111$ examples, $46$ of them wrong ($95.9\%$ correct), and gains $+0.0116$ (standard error $0.0027$): small, although about four standard errors from zero. So the lack of improvement cannot be blamed on wrong pseudo-labels.
+#
+# **Which examples are added.** The last table shows the classes of the pseudo-labels at $\tau=0.9$: the model adds $112$ of the $123$ unlabeled zeros, $108$ of the $126$ sixes, $91$ of the $124$ sevens, but only $21.5$ of the $126$ ones, $27.6$ of the $127$ threes, $2.9$ of the $125$ nines and $0.85$ of the $121$ eights. These are the examples that the model already classifies correctly and confidently, and they come from the classes that it already separates well, so that the augmented training set is strongly unbalanced and says nothing new about the difficult classes. The test recall confirms it: it rises for the easy classes (from $0.974$ to $0.978$ for the zeros, by $0.011$ to $0.019$ for the classes $2$, $4$, $5$, $6$ and $7$) and falls for the difficult ones: from $0.730$ to $0.586$ for the eights, from $0.821$ to $0.682$ for the nines, from $0.767$ to $0.693$ for the ones, and from $0.939$ to $0.916$ for the threes. The drop of $0.03$ is the net of these changes.
+#
+# **Calibration (Section 11.10).** In the first round at $\tau=0.7$ the model adds $632.5$ pseudo-labels per labeled set, of which $2.85$ are wrong ($99.5\%$ correct); the wrong ones have a confidence of $0.754$ on average, the largest being $0.872$, so that none would have passed $\tau=0.9$: the mistakes are concentrated just above the threshold, and a higher threshold removes them, at the price of adding fewer and easier examples. The confidence of this model is informative as a ranking, but it is not a probability, and here the error is in the opposite direction from the ensembles of Section 11.10: a logistic regression with $C=1$ fitted on $100$ examples is **underconfident**. On the unlabeled examples its mean confidence is $0.664$ for an accuracy of $0.902$; the examples with a confidence between $0.5$ and $0.7$ ($334$ per labeled set) are classified correctly $93.4\%$ of the time (mean confidence $0.608$), those between $0.7$ and $0.8$ $99.1\%$ ($0.753$), those between $0.8$ and $0.9$ $99.8\%$ ($0.849$) and the $67$ above $0.9$ all of them. A threshold of $0.9$ is therefore not "accept $10\%$ of errors" but "accept the $5\%$ most extreme examples", and $\tau=0.7$ is not "$30\%$ of errors" but about $1\%$ at the first round. In later rounds the model, retrained on its own labels, is more sure of itself and the mistakes accumulate: at $\tau=0.7$ the pseudo-label accuracy is $0.938$ in the second round ($19.8$ wrong) and $0.881$ in the third ($11.1$ wrong), with a mean confidence of the wrong ones of $0.788$ and $0.759$. Two remedies address the two causes found here: a calibrated model (Platt scaling, Section 8.7.3), so that a threshold means what it says, and a selection that respects the classes, for instance the same number of most confident examples per class. Without them self-training adds to the labeled set only the examples that the classifier already handles, which is why it gains so little.

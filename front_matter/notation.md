@@ -178,6 +178,21 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $r_i,\ g_i,\ q_i$ | Pseudo-residual $-\partial\ell/\partial F$ of the $i$-th example, and the gradient and curvature $\partial\ell/\partial F$, $\partial^2\ell/\partial F^2$ of the loss at the current model (Propositions 11.13 and 11.14) |
 | $G_j,\ Q_j,\ w_j^\ast,\ \gamma$ | Sums of $g_i$ and $q_i$ over the leaf $R_j$, the Newton leaf value $-G_j/(Q_j+\lambda)$ and the price per leaf of the regularized objective of Proposition 11.14. (Not to be confused with the edge $\gamma_m$ of AdaBoost.) |
 
+## Clustering (Chapter 12)
+
+| Symbol | Meaning |
+|---|---|
+| $k,\ C_j,\ n_j,\ \boldsymbol\mu_j$ | Number of clusters (not the number of neighbors of Chapter 4), the $j$-th cluster, its size and its centroid (Definition 12.1). $S(n,k)$ is the number of partitions of $n$ examples into $k$ clusters, the Stirling number of the second kind |
+| $\mathrm{SS}_W,\ \mathrm{SS}_B,\ \mathrm{SS}_T$ | Within-cluster, between-cluster and total scatter, $\mathrm{SS}_T=\mathrm{SS}_W+\mathrm{SS}_B$ (Definition 12.2, Proposition 12.2). $J$ is the $k$-means objective (12.3), a sum and not a mean, equal to $\mathrm{SS}_W$ when the centers are the cluster means; $J^\ast(k)$ is its best value found over the starts |
+| $D(\mathbf{x})^2$ | Squared distance of $\mathbf{x}$ to the nearest of the centers already chosen by $k$-means++ (Theorem 12.6). (Not the depth of a tree of Chapter 11; $\mathbf{D}$ in bold is the degree matrix below.) |
+| $a(i),\ b(i),\ s(i)$ | Mean distance of the example $i$ to its own cluster, smallest mean distance to another cluster, and the silhouette $\frac{b(i)-a(i)}{\max\{a(i),b(i)\}}$ (Definition 12.3) |
+| $n_{ij},\ a_i,\ b_j,\ \mathrm{ARI}$ | Contingency table of two partitions, its row and column sums (no argument, unlike the silhouette quantities $a(i)$ and $b(i)$), and the adjusted Rand index (Definition 12.4) |
+| $\pi_j,\ \boldsymbol\Sigma_j,\ r_{ij}$ | Mixing weight and covariance matrix of the component $j$ of a Gaussian mixture, and the responsibility of the component $j$ for the example $i$ (Section 12.7.1); $\mathrm{BIC}=-2\ell(\hat\theta)+d\ln n$ with $d$ parameters (smaller is better) |
+| $\mathbf{W},\ w_{ij},\ d_i,\ \mathbf{D}$ | Weighted adjacency (similarity) matrix of a graph on the examples (not the weights of a model, as in Chapters 6 to 11), its entries, the degrees $d_i=\sum_jw_{ij}$ and the diagonal matrix of the degrees |
+| $\mathbf{L},\ \mathbf{L}_{\mathrm{sym}},\ \mathbf{L}_{\mathrm{rw}}$ | The graph Laplacians $\mathbf{D}-\mathbf{W}$, $\mathbf{I}-\mathbf{D}^{-1/2}\mathbf{W}\mathbf{D}^{-1/2}$ and $\mathbf{I}-\mathbf{D}^{-1}\mathbf{W}$ (Definition 12.5). Here $\mathbf{L}$ is not a loss or a smoothness constant, as in Chapter 7; the eigenvalues $\lambda_1\le\lambda_2\le\cdots$ are those of the Laplacian in question |
+| $\mathrm{cut},\ \mathrm{vol},\ \mathrm{RatioCut},\ \mathrm{Ncut}$ | $\mathrm{cut}(A,\bar A)=\sum_{i\in A,j\in\bar A}w_{ij}$, the volume $\mathrm{vol}(A)=\sum_{i\in A}d_i$, and the two normalized cut criteria whose relaxations lead to the eigenvectors of $\mathbf{L}$ and $\mathbf{L}_{\mathrm{sym}}$ (Section 12.8.2, Proposition 12.16) |
+| $\mathbf{f},\ \mathbf{f}_l,\ \mathbf{f}_u$ | Function on the vertices of the graph, its values on the labeled and on the unlabeled vertices; the harmonic solution is $\mathbf{f}_u=\mathbf{L}_{uu}^{-1}\mathbf{W}_{ul}\mathbf{f}_l$ (equation (12.6), Proposition 12.17) |
+
 ## Probability
 
 | Symbol | Meaning |

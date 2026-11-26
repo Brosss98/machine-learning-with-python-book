@@ -49,6 +49,9 @@ project:
         - file: chapters/ch09_kernels_representer_theorem.ipynb
         - file: chapters/ch10_sparsity_feature_selection.ipynb
         - file: chapters/ch11_decision_trees_ensembles.ipynb
+    - title: "Part III — Unsupervised Learning"
+      children:
+        - file: chapters/ch12_clustering.ipynb
     - title: "Appendices"
       children:
         - file: appendices/appendix_c_solutions.ipynb
