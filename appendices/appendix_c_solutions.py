@@ -3121,3 +3121,322 @@ with warnings.catch_warnings():
 
 # %% [markdown]
 # With the response shuffled, the null model has the mean squared error of the variance of the response (ratio 1), and no estimate of the error of a method that learns nothing can honestly be below it. The minimum of the cross-validation curve of `LassoCV`, the number that is usually reported, has a mean ratio of $1.02$ and is below $1$ in $7$ of the 30 repetitions (5th to 95th percentile $0.93$ to $1.10$): in one repetition out of four the method appears to predict better than the null model although there is nothing to predict. The nested estimate of the whole procedure has a mean ratio of $1.10$, is below $1$ in only one repetition, and shows what is true: a lasso with $\lambda$ chosen on noise does worse than the null model, because the selected noise columns add variance. The difference between the two estimates, $0.08$ of the variance on average, is the winner's curse of Section 5.4.3 for the choice of $\lambda$: the minimum of 50 estimated errors is optimistic, and the optimism is largest exactly when the signal is weak.
+
+# %% [markdown]
+# ## C.11 Chapter 11
+#
+# ### Manual exercises
+#
+# **Solution 11.1 — A tree and its pruning by hand.**
+#
+# (a) The root has $\bar y=45/8=5.625$ and $\mathrm{RSS}=103.875$. The gains $\frac{n_Ln_R}{8}(\bar y_L-\bar y_R)^2$ of the seven thresholds $1.5,2.5,\dots,7.5$ are $7.875$, $35.042$, $63.075$, $28.125$, $2.408$, $3.375$ and $0.446$, so the first split is at $x\le3.5$, with gain $63.075$. Check: the left child $(3,1,2)$ has mean $2$ and $\mathrm{RSS}=2$, the right child $(9,11,10,4,5)$ has mean $7.8$ and $\mathrm{RSS}=38.8$, and $103.875-2-38.8=63.075$.
+#
+# (b) In the left child the threshold $1.5$ separates $(3)$ from $(1,2)$ with gain $\frac{1\cdot2}{3}(3-1.5)^2=1.5$ (the threshold $2.5$ gains $0$). In the right child the thresholds $4.5,5.5,6.5,7.5$ gain $1.8$, $16.13$, $36.3$ and $9.8$, so the split is at $x\le6.5$, separating $(9,11,10)$ from $(4,5)$. The four leaves have values $3$, $1.5$, $10$ and $4.5$, residual sums of squares $0$, $0.5$, $2$ and $0.5$, and the training $\mathrm{RSS}$ of the tree is $3$, that is $97.1\%$ less than the root's.
+#
+# (c) The internal nodes are the root, the left child $L=(3,1,2)$ and the right child $R=(9,11,10,4,5)$. With $R(t)$ the RSS of the node taken as a leaf and $R(T_t)$ that of its subtree:
+# $$g(L)=\frac{2-0.5}{2-1}=1.5,\qquad g(R)=\frac{38.8-2.5}{2-1}=36.3,\qquad g(\text{root})=\frac{103.875-3}{4-1}=33.625 .$$
+# The weakest link is $L$: pruning it gives the tree with three leaves $(3,1,2)$, $(9,11,10)$, $(4,5)$ and $\mathrm{RSS}=4.5$. **The values must be recomputed**: now $g(R)=36.3$ is unchanged but $g(\text{root})=\frac{103.875-4.5}{3-1}=49.6875$, so the next weakest link is $R$, not the root, although the root had the smaller value before the first pruning. Pruning $R$ gives the two leaves $(3,1,2)$, $(9,11,10,4,5)$ with $\mathrm{RSS}=40.8$, and $g(\text{root})=\frac{103.875-40.8}{2-1}=63.075$, the gain of the first split; pruning the root leaves a single leaf. The nested sequence is therefore: four leaves for $\alpha<1.5$, three leaves for $1.5\le\alpha<36.3$, two leaves for $36.3\le\alpha<63.075$ and the root alone for $\alpha\ge63.075$ (in units of the residual sum of squares; scikit-learn divides by the number of examples).
+#
+# **Solution 11.2 — The Gini gain in closed form.**
+#
+# (a) With $p=(n_Lp_L+n_Rp_R)/n$ the gain is $2p(1-p)-\frac{n_L}{n}2p_L(1-p_L)-\frac{n_R}{n}2p_R(1-p_R)$. The linear terms cancel because $p$ is the weighted average of $p_L$ and $p_R$, and what is left is $2\big[\frac{n_L}{n}p_L^2+\frac{n_R}{n}p_R^2-p^2\big]$, twice the variance of a variable that takes the values $p_L$ and $p_R$ with probabilities $n_L/n$ and $n_R/n$, that is $2\,\frac{n_Ln_R}{n^2}(p_L-p_R)^2$.
+#
+# (b) With class $1$ as the second class: $p_L=0$, $p_R=10/35=2/7$, $n_L=25$, $n_R=35$, $n=60$, so the gain is $2\cdot\frac{25\cdot35}{3600}\cdot\big(\frac27\big)^2=0.0397$. Directly: the parent has Gini index $2\cdot\frac16\cdot\frac56=0.2778$, the left child $0$ and the right child $2\cdot\frac27\cdot\frac57=0.4082$, weighted $\frac{35}{60}0.4082=0.2381$, and $0.2778-0.2381=0.0397$.
+#
+# (c) The misclassification rate of the parent is $10/60$, that of the children is $0$ and $10/60$ (weighted): the gain is **zero**, because the majority class is class $0$ in the parent and in both children, so that the error does not see that one child has become pure. The misclassification rate is piecewise linear in $p$ and not strictly concave, so that a split that keeps the majority classes is invisible to it, while the Gini index is strictly concave: by Proposition 11.4 its gain is never negative and it is strictly positive whenever $p_L\ne p_R$, here $0.0397$, a split that isolates a pure node of $25$ examples.
+#
+# **Solution 11.3 — How many trees?**
+#
+# (a) By (11.2) the excess of the variance over the floor $\rho\sigma^2$ is $(1-\rho)\sigma^2/B$; requiring it to be at most $0.05\,\rho\sigma^2$ gives $B\ge20\,(1-\rho)/\rho$. For $\rho=0.3$ this is $20\cdot0.7/0.3=46.7$, so $B=47$ trees. For $\rho=0.1$ it is $180$ trees and for $\rho=0.6$ only $14$: the more correlated the trees, the fewer are needed, and the less they help.
+#
+# (b) Setting $380+\frac{3382-380}{B}=229+\frac{3736-229}{B}$ gives $151=505/B$, that is $B=3.34$: the forest has the smaller variance from $B=4$ on (the measured values at $B=5$ are $980$ and $930$, in Section 11.6.4). For $B=1$ the variance is $\sigma^2$ itself, and the forest's is larger ($3736$ against $3382$) because its trees are not allowed to use the best split at every node.
+#
+# (c) The derivative of (11.2) with respect to $B$ is $-(1-\rho)\sigma^2/B^2\le0$, so the variance decreases with $B$, and its limit is $\rho\sigma^2$. If $\rho$ is close to $1$ the floor is nearly $\sigma^2$: the average of any number of nearly identical trees is as variable as one of them, and the only remedy is to decorrelate the trees, which is what $m_{\text{try}}$ does.
+#
+# **Solution 11.4 — The weak learner is useless in the next round.**
+#
+# (a) After the update the examples misclassified by $h_m$ have total weight $\varepsilon_me^{\alpha_m}/Z_m$, with $e^{\alpha_m}=\sqrt{(1-\varepsilon_m)/\varepsilon_m}$ and $Z_m=2\sqrt{\varepsilon_m(1-\varepsilon_m)}$ (Proposition 11.11 with normalized weights). So the weighted error is $\dfrac{\varepsilon_m\sqrt{(1-\varepsilon_m)/\varepsilon_m}}{2\sqrt{\varepsilon_m(1-\varepsilon_m)}}=\dfrac{\sqrt{\varepsilon_m(1-\varepsilon_m)}}{2\sqrt{\varepsilon_m(1-\varepsilon_m)}}=\dfrac12$.
+#
+# (b) $\varepsilon_m=0.2$, $\alpha_m=\frac12\ln4=0.693$, $e^{\alpha_m}=2$. The misclassified point has weight $0.2\cdot2=0.4$ and each of the four others $0.2\cdot\frac12=0.1$, so $Z_m=0.4+0.4=0.8=2\sqrt{0.2\cdot0.8}$ and the new weights are $0.5$ for the misclassified point and $0.125$ for each of the other four. The weighted error of $h_m$ is $0.5$.
+#
+# (c) Under the new weights the classifier $h_m$ is no better than a coin toss, so the next learner has to be a different one, one that is right where $h_m$ was wrong: this is how each round brings new information, and why the same stump is never useful twice in a row.
+#
+# **Solution 11.5 — AdaBoost is gradient boosting for the exponential loss.**
+#
+# (a) $-\partial\ell/\partial F=ye^{-yF}$, and $e^{-y_iF_{m-1}(\mathbf{x}_i)}=Ww_i$, so $r_i=Wy_iw_i$.
+#
+# (b) $\sum_ir_ih(\mathbf{x}_i)=W\sum_iw_iy_ih(\mathbf{x}_i)$, and $y_ih(\mathbf{x}_i)=+1$ on the examples that $h$ classifies correctly (total weight $1-\varepsilon$) and $-1$ on the others (total weight $\varepsilon$), so the sum is $W(1-2\varepsilon)$. Among classifiers with values $\pm1$ the one that is most correlated with the pseudo-residuals is the one with the least weighted error, the choice of AdaBoost.
+#
+# (c) $\sum_ie^{-y_i(F_{m-1}(\mathbf{x}_i)+\alpha h(\mathbf{x}_i))}=W\big[(1-\varepsilon)e^{-\alpha}+\varepsilon e^{\alpha}\big]$, minimized at $\alpha=\frac12\ln\frac{1-\varepsilon}{\varepsilon}$ (Proposition 11.11).
+#
+# (d) $g_i=\partial\ell/\partial F=-y_iWw_i$ and $q_i=\partial^2\ell/\partial F^2=y_i^2Ww_i=Ww_i$, so the Newton value of a leaf is $w_j^\ast=-G_j/Q_j=\sum_{i\in R_j}y_iw_i\big/\sum_{i\in R_j}w_i$, the weighted mean of the labels in the leaf, a number in $[-1,1]$. It is the leaf value of Gentle AdaBoost. A pure leaf gets $\pm1$, whereas the line search of (c) applied to a leaf of weighted error $0$ would give an infinite value: the Newton step is a damped version of it.
+
+# %% [markdown]
+# ### Python exercises
+
+# %%
+def solution_11_6():
+    from sklearn.datasets import load_wine
+    from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_val_score, train_test_split
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.tree import DecisionTreeClassifier
+
+    wine = load_wine()
+    Xtr, Xte, ytr, yte = train_test_split(wine.data, wine.target, test_size=0.25, random_state=SEED, stratify=wine.target)
+    print(f"{len(ytr)} training and {len(yte)} test wines, {Xtr.shape[1]} features, class counts in the training set {np.bincount(ytr)}")
+    full = DecisionTreeClassifier(random_state=SEED).fit(Xtr, ytr)
+    raw = full.cost_complexity_pruning_path(Xtr, ytr).ccp_alphas
+    alphas = np.unique(np.round(raw, 12))[:-1]                       # distinct break points, without the one that leaves only the root
+    leaves = np.array([DecisionTreeClassifier(ccp_alpha=a * (1 + 1e-9), random_state=SEED).fit(Xtr, ytr).get_n_leaves() for a in alphas])
+    print(f"the full tree has {full.get_n_leaves()} leaves; the path has {len(alphas)} distinct break points (without the root-only one)")
+
+    skf = StratifiedKFold(10, shuffle=True, random_state=SEED)
+    err = np.array([1 - cross_val_score(DecisionTreeClassifier(ccp_alpha=a * (1 + 1e-9), random_state=SEED), Xtr, ytr, cv=skf) for a in alphas])
+    mean, se = err.mean(axis=1), err.std(axis=1, ddof=1) / np.sqrt(skf.get_n_splits())
+    i_min = int(np.argmin(mean))
+    i_1se = int(np.where(mean <= mean[i_min] + se[i_min])[0].max())  # the largest alpha within one SE of the minimum
+    print(f"CV minimum: alpha = {alphas[i_min]:.4f}, {leaves[i_min]} leaves, error {mean[i_min]:.3f} (SE {se[i_min]:.3f});"
+          f"  one-SE rule: alpha = {alphas[i_1se]:.4f}, {leaves[i_1se]} leaves, error {mean[i_1se]:.3f}")
+
+    ada = GridSearchCV(AdaBoostClassifier(DecisionTreeClassifier(max_depth=1), random_state=SEED), {"n_estimators": [1, 2, 5, 10, 20, 50, 100, 200]}, cv=skf).fit(Xtr, ytr)
+    models = {
+        "full tree": full,
+        "pruned tree, CV minimum": DecisionTreeClassifier(ccp_alpha=alphas[i_min] * (1 + 1e-9), random_state=SEED).fit(Xtr, ytr),
+        "pruned tree, one-SE": DecisionTreeClassifier(ccp_alpha=alphas[i_1se] * (1 + 1e-9), random_state=SEED).fit(Xtr, ytr),
+        "random forest (300)": RandomForestClassifier(300, random_state=SEED, n_jobs=2).fit(Xtr, ytr),
+        f"AdaBoost, stumps ({ada.best_params_['n_estimators']} rounds)": ada.best_estimator_,
+        "logistic regression (standardized)": make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000)).fit(Xtr, ytr),
+    }
+    rows = []
+    for name, m in models.items():
+        e = float(np.mean(m.predict(Xte) != yte))
+        rows.append({"model": name, "test errors": int(round(e * len(yte))), "error rate": e, "SE": float(np.sqrt(e * (1 - e) / len(yte)))})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.0))
+    axes[0].step(alphas, leaves, where="post", color=BLUE, lw=2)
+    axes[0].set(xlabel=r"$\alpha$", ylabel="number of leaves", title="(a) the nested sequence of subtrees")
+    axes[1].plot(leaves, mean, color=BLUE, lw=2, marker="o", ms=4)
+    axes[1].fill_between(leaves, mean - se, mean + se, color=BLUE, alpha=0.2)
+    axes[1].axvline(leaves[i_min], color="gray", ls=":", lw=1)
+    axes[1].axvline(leaves[i_1se], color="gray", ls="--", lw=1)
+    axes[1].set(xlabel="number of leaves", ylabel="10-fold CV error rate", title="(b) cross-validation (dotted: minimum; dashed: one-SE)")
+    plt.show()
+
+
+solution_11_6()
+
+# %% [markdown]
+# The full tree has only $8$ leaves (the three Wine classes are easy to separate and the training set has $133$ wines), so pruning has little room: the cross-validated error is $0.089$ (SE $0.030$) at the minimum, with $5$ leaves, and $0.112$ at the one-SE value, with $3$ leaves. On the $45$ test wines the full tree makes $2$ errors, the tree of the CV minimum $3$, AdaBoost with $20$ stumps $3$, the one-SE tree $6$, and the forest and the standardized logistic regression none. With $45$ test examples the standard error of an error rate is $0.03$ to $0.05$, so the order among the full tree, the minimum-CV tree and AdaBoost ($2$ or $3$ errors) means nothing, and the $6$ errors of the three-leaf tree are the price of its simplicity, which the cross-validation had put within one standard error of the minimum. A rate of zero errors gives a standard error of zero by the formula, which is not a sensible estimate; the "rule of three" bounds the true error rate by about $3/45\approx0.07$ with $95\%$ confidence. What can be concluded is that the ensembles and the linear model are at least as good as any single tree on these data, and that a test set of $45$ wines cannot rank methods that are a few errors apart.
+
+# %%
+def solution_11_7():
+    from sklearn.datasets import load_diabetes
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.tree import DecisionTreeRegressor
+
+    d = load_diabetes()
+    Xtr, Xte, ytr, yte = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    n, B = len(ytr), 300
+    rng = np.random.default_rng(SEED)
+    inbag = np.zeros((B, n), dtype=bool)
+    P_tr, P_te = np.zeros((B, n)), np.zeros((B, len(yte)))
+    for b in range(B):
+        idx = rng.integers(0, n, n)
+        tree = DecisionTreeRegressor(max_features=1 / 3, min_samples_leaf=5, random_state=int(rng.integers(2 ** 31 - 1))).fit(Xtr[idx], ytr[idx])
+        inbag[b, idx] = True
+        P_tr[b], P_te[b] = tree.predict(Xtr), tree.predict(Xte)
+    oob = ~inbag
+    has = oob.sum(axis=0) > 0
+    oob_pred = (P_tr * oob).sum(axis=0)[has] / oob.sum(axis=0)[has]
+    rmse = lambda a, b_: float(np.sqrt(np.mean((a - b_) ** 2)))
+    rf = RandomForestRegressor(B, max_features=1 / 3, min_samples_leaf=5, oob_score=True, random_state=SEED, n_jobs=2).fit(Xtr, ytr)
+    print(f"each patient is out of the bag for {oob.sum(axis=0).mean():.1f} of the {B} trees on average ({oob.mean():.3f}; theory {np.exp(-1):.3f})")
+    print(pd.DataFrame([{"forest": "ours", "OOB RMSE": rmse(oob_pred, ytr[has]), "test RMSE": rmse(P_te.mean(axis=0), yte)},
+                        {"forest": "scikit-learn", "OOB RMSE": rmse(rf.oob_prediction_, ytr), "test RMSE": rmse(rf.predict(Xte), yte)}]).to_string(index=False, float_format=lambda v: f"{v:.2f}"))
+
+    # (b) patients that are in the bootstrap sample of every one of 10 trees
+    no_oob = int((oob[:10].sum(axis=0) == 0).sum())
+    sims = [np.sum(np.all([np.isin(np.arange(n), rng.integers(0, n, n)) for _ in range(10)], axis=0)) for _ in range(500)]
+    print(f"with B = 10 trees: {no_oob} of {n} patients have no OOB tree in our forest; expected n (1 - (1-1/n)^n)^10 = {n * (1 - (1 - 1 / n) ** n) ** 10:.2f};"
+          f" simulation over 500 repetitions: {np.mean(sims):.2f}")
+    cum = [int(np.sum(oob[:k].sum(axis=0) == 0)) for k in [5, 10, 20, 50]]
+    print("patients without any OOB tree for B = 5, 10, 20, 50 (our forest):", cum)
+
+
+solution_11_7()
+
+# %% [markdown]
+# Our forest agrees with the library's up to the variation between two forests of $300$ trees grown from different random draws: the OOB RMSE is $58.12$ against $57.96$ and the test RMSE $52.21$ against $52.50$. Each patient is out of the bag for $110.5$ of the $300$ trees on average, $36.8\%$ as in Proposition 11.9. For (b), a patient is in the bootstrap sample of a given tree with probability $0.632$, so the probability of being in all $10$ samples is $0.632^{10}=0.0102$ and the expected number of patients without an OOB tree is $331\cdot0.0102=3.40$; a simulation over $500$ repetitions gives $3.37$. Our forest has one such patient, which is unremarkable (the count is close to a Poisson variable with mean $3.4$, which takes a value of at most $1$ about $15\%$ of the time). With $B=5$ trees $37$ patients ($11\%$) have no OOB prediction, with $B=20$ essentially none ($331\cdot0.632^{20}=0.03$): the OOB error of a very small forest is computed on fewer patients, or on fewer trees per patient, and is more variable.
+
+# %%
+def solution_11_8():
+    from sklearn.datasets import load_diabetes
+    from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+    from sklearn.model_selection import train_test_split
+
+    d = load_diabetes()
+    Xtr, Xte, ytr, yte = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    R, n_small, B = 40, 100, 50
+    makers = {
+        "random forest": lambda s: RandomForestRegressor(B, max_features=1 / 3, min_samples_leaf=5, random_state=s, n_jobs=2),
+        "extremely randomized trees": lambda s: ExtraTreesRegressor(B, max_features=1 / 3, min_samples_leaf=5, random_state=s, n_jobs=2),
+    }
+    rng = np.random.default_rng(SEED)
+    sets = [rng.choice(len(ytr), n_small, replace=False) for _ in range(R)]
+    rows = []
+    for name, make in makers.items():
+        P = np.zeros((R, B, len(yte)))
+        for r, idx in enumerate(sets):
+            f = make(r).fit(Xtr[idx], ytr[idx])
+            P[r] = np.array([t.predict(Xte) for t in f.estimators_])
+        sigma2 = P.var(axis=0, ddof=1).mean()
+        cov = np.mean([np.mean((P[:, 2 * k] - P[:, 2 * k].mean(axis=0)) * (P[:, 2 * k + 1] - P[:, 2 * k + 1].mean(axis=0))) * R / (R - 1) for k in range(B // 2)])
+        var_avg = P.mean(axis=1).var(axis=0, ddof=1).mean()
+        full = make(0).fit(Xtr, ytr)
+        rows.append({"method": name, "sigma^2": sigma2, "rho": cov / sigma2, "rho sigma^2": cov, "variance of the average of 50": var_avg,
+                     "formula (11.2)": cov + (sigma2 - cov) / B, "test RMSE (full training set)": float(np.sqrt(np.mean((full.predict(Xte) - yte) ** 2)))})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3g}"))
+
+
+solution_11_8()
+
+# %% [markdown]
+# The extra randomization acts almost entirely on $\sigma^2$, not on $\rho$. The variance of a single tree falls from $\sigma^2=1970$ for the random forest to $1220$ for the extremely randomized trees ($-38\%$), while the correlation is about the same ($0.068$ and $0.063$), so the variance of the average of $50$ trees is $171$ against $92$. Equation (11.2) reproduces both ($170$ and $171$ for the forest, $98.9$ and $92.1$ for the extremely randomized trees, a $7\%$ difference with only $40$ training sets). The price is the bias: a random threshold is a worse cut than the best one, and on the whole training set the test RMSE is $53.3$ against $51.8$ for the forest. Whether the variance saved is worth the bias added depends on the data, which is why `ExtraTreesRegressor` is a candidate to try next to the forest and not a replacement for it.
+
+# %%
+def solution_11_9():
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.metrics import log_loss
+    from sklearn.model_selection import StratifiedKFold, train_test_split
+    from sklearn.tree import DecisionTreeRegressor
+
+    bc = load_breast_cancer()
+    y_all = 1 - bc.target
+    Xtr, Xte, ytr, yte = train_test_split(bc.data, y_all, test_size=0.25, random_state=SEED, stratify=y_all)
+
+    def boost(X, y, M, nu=0.1, depth=2, lam=0.0, Xva=None, yva=None):
+        """Gradient boosting with the logistic loss and Newton leaf values. Returns the model and, if a validation set is given, its log loss after each round."""
+        p0 = y.mean()
+        F0 = np.log(p0 / (1 - p0))
+        F, Fva = np.full(len(y), F0), (np.full(len(yva), F0) if Xva is not None else None)
+        trees, vals, va_loss = [], [], []
+        for m in range(M):
+            p = 1 / (1 + np.exp(-F))
+            r = y - p
+            t = DecisionTreeRegressor(max_depth=depth, random_state=SEED).fit(X, r)
+            leaf = t.apply(X)
+            num = np.bincount(leaf, weights=r, minlength=t.tree_.node_count)
+            den = np.bincount(leaf, weights=p * (1 - p), minlength=t.tree_.node_count)
+            val = np.divide(num, den + lam, out=np.zeros_like(num), where=den > 1e-150)
+            F = F + nu * val[leaf]
+            trees.append(t); vals.append(val)
+            if Xva is not None:
+                Fva = Fva + nu * val[t.apply(Xva)]
+                va_loss.append(log_loss(yva, np.clip(1 / (1 + np.exp(-Fva)), 1e-12, 1 - 1e-12)))
+        return (F0, trees, vals, nu), np.array(va_loss)
+
+    def decision(model, X, upto=None):
+        F0, trees, vals, nu = model
+        return F0 + nu * sum(v[t.apply(X)] for t, v in list(zip(trees, vals))[:upto])
+
+    model, _ = boost(Xtr, ytr, 100)
+    for M in [20, 100]:
+        sk = GradientBoostingClassifier(n_estimators=M, learning_rate=0.1, max_depth=2, random_state=SEED).fit(Xtr, ytr)
+        diff = np.abs(decision(model, Xte, M) - sk.decision_function(Xte))
+        print(f"M = {M:3d}: largest difference of the decision functions on the test inputs {diff.max():.1e} (mean {diff.mean():.1e}); same predicted classes: {np.array_equal(decision(model, Xte, M) > 0, sk.decision_function(Xte) > 0)}")
+
+    skf = StratifiedKFold(5, shuffle=True, random_state=SEED)
+    M_max = 300
+    curves = {}
+    for lam in [0.0, 1.0, 10.0]:
+        c = np.zeros(M_max)
+        for tr, va in skf.split(Xtr, ytr):
+            _, l = boost(Xtr[tr], ytr[tr], M_max, lam=lam, Xva=Xtr[va], yva=ytr[va])
+            c += l / skf.get_n_splits()
+        curves[lam] = c
+    print(pd.DataFrame([{"lambda": lam, "minimum CV log loss": c.min(), "at round": int(np.argmin(c)) + 1, "CV log loss at round 300": c[-1]} for lam, c in curves.items()]).to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+    fig, ax = plt.subplots(figsize=(6.6, 4.0))
+    for (lam, c), color, ls in zip(curves.items(), [BLUE, ORANGE, GREEN], ["-", "--", ":"]):
+        ax.plot(np.arange(1, M_max + 1), c, color=color, ls=ls, lw=2, label=rf"$\lambda$ = {lam:g}")
+    ax.set(xlabel="boosting rounds", ylabel="5-fold CV log loss", ylim=(0, 0.4), title=r"Newton boosting, depth 2, $\nu=0.1$")
+    ax.legend(frameon=False)
+    plt.show()
+
+
+solution_11_9()
+
+# %% [markdown]
+# After $20$ rounds the decision functions agree to $2\cdot10^{-15}$, and at $100$ rounds the largest difference over the test inputs is $0.69$ on the log-odds scale for one input (mean $0.007$), with the same predicted class for every test patient: the pattern of Section 11.9.2, agreement to rounding and then a divergence at a near-tie (we did not trace this particular divergence). Without regularization the minimum of the $5$-fold cross-validated log loss is $0.1259$ at round $100$, as for the library in Section 11.9.5, and it rises to $0.1597$ at round $300$. With $\lambda=1$ the minimum is **lower and later**, $0.1077$ at round $252$, and the curve is flat up to $300$ rounds ($0.1081$); with $\lambda=10$ learning is too slow, and at round $300$ the curve ($0.1208$) is still falling. The reason is in the denominator of the leaf value $\sum(y_i-p_i)/(\sum p_i(1-p_i)+\lambda)$: a leaf that holds a few patients whom the model already predicts with confidence has $\sum p_i(1-p_i)\approx0$, and without $\lambda$ the step is huge there; this is the source of the overconfidence of Section 11.9.5, and the penalty of Proposition 11.14 removes it where it matters. A moderate $\lambda$ is better than none and than a large one.
+
+# %%
+def solution_11_10():
+    from sklearn.datasets import load_diabetes
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.linear_model import LassoCV
+    from sklearn.model_selection import KFold, train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    d = load_diabetes()
+    names = list(d.feature_names)
+    Xtr, _, ytr, _ = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    Xf, Xv, yf, yv = train_test_split(Xtr, ytr, test_size=0.25, random_state=SEED)
+    print(f"forest grown on {len(yf)} patients, importances measured on {len(yv)} others")
+    rg = np.random.default_rng(SEED)
+
+    def study(X_fit, X_val, n_perm=30, groups=()):
+        rf = RandomForestRegressor(300, max_features=1 / 3, min_samples_leaf=5, random_state=SEED, n_jobs=2).fit(X_fit, yf)
+        base = rf.predict(X_val)
+        cols = [[j] for j in range(X_val.shape[1])] + [list(g) for g in groups]
+        preds = np.zeros((len(cols), n_perm, len(yv)))
+        for c, cc in enumerate(cols):
+            for k in range(n_perm):
+                Xp = X_val.copy()
+                Xp[:, cc] = X_val[rg.permutation(len(yv))][:, cc]
+                preds[c, k] = rf.predict(Xp)
+        return rf, base, cols, preds
+
+    def increase(base, preds, idx):
+        rm = lambda p: np.sqrt(np.mean((p - yv[idx]) ** 2, axis=-1))
+        return (rm(preds[..., idx]) - rm(base[idx])).mean(axis=-1)
+
+    j1, j2 = names.index("s1"), names.index("s2")
+    rf, base, cols, preds = study(Xf, Xv, groups=[(j1, j2)])
+    all_idx = np.arange(len(yv))
+    imp = increase(base, preds, all_idx)
+    boots = np.array([increase(base, preds, rg.integers(0, len(yv), len(yv))) for _ in range(500)])
+    lo, hi = np.percentile(boots, [2.5, 97.5], axis=0)
+    tab = pd.DataFrame({"feature": names + ["s1 + s2 together"], "MDI": list(rf.feature_importances_) + [np.nan],
+                        "permutation: RMSE increase": imp, "95% CI low": lo, "95% CI high": hi})
+    print(tab.to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    print(f"correlation of s1 and s2 in the training set: {np.corrcoef(Xtr[:, j1], Xtr[:, j2])[0, 1]:.3f}; baseline RMSE on the validation patients {np.sqrt(np.mean((base - yv) ** 2)):.2f}")
+
+    # (c) twenty noise columns
+    noise_f, noise_v = rg.standard_normal((len(yf), 20)), rg.standard_normal((len(yv), 20))
+    rf2, base2, cols2, preds2 = study(np.c_[Xf, noise_f], np.c_[Xv, noise_v], n_perm=20)
+    imp2 = increase(base2, preds2, all_idx)
+    print(f"\nwith 20 noise columns: largest MDI among them {rf2.feature_importances_[10:].max():.4f} (largest MDI of a real feature {rf2.feature_importances_[:10].max():.4f});"
+          f" largest permutation increase among them {imp2[10:].max():.3f} (largest of a real feature {imp2[:10].max():.3f}); sum of the MDI of the noise {rf2.feature_importances_[10:].sum():.4f}")
+
+    # (d) the lasso at the one-SE value of lambda
+    sc = StandardScaler().fit(Xtr)
+    lc = LassoCV(alphas=100, cv=KFold(10, shuffle=True, random_state=SEED)).fit(sc.transform(Xtr), ytr)
+    mean, se = lc.mse_path_.mean(axis=1), lc.mse_path_.std(axis=1, ddof=1) / np.sqrt(10)
+    i_min = int(np.argmin(mean))
+    i_1se = int(np.where(mean <= mean[i_min] + se[i_min])[0].min())
+    from sklearn.linear_model import Lasso
+    w = Lasso(alpha=lc.alphas_[i_1se], max_iter=100000).fit(sc.transform(Xtr), ytr).coef_
+    print(f"\nlasso at the one-SE value (lambda = {lc.alphas_[i_1se]:.2f}) keeps: {[n for n, v in zip(names, w) if v != 0]}")
+    print("permutation importance with a 95% interval above zero:", [n for n, l in zip(names, lo[:10]) if l > 0])
+    print("the three largest MDI:", [names[j] for j in np.argsort(-rf.feature_importances_)[:3]])
+
+
+solution_11_10()
+
+# %% [markdown]
+# With only $83$ validation patients the intervals are wide. The permutation importance singles out `bmi` ($6.52$ RMSE units, interval $3.18$ to $9.91$) and `s5` ($5.75$, $1.89$ to $9.88$); `sex` is small but its interval is above zero ($0.37$, $0.15$ to $0.56$); `bp` ($2.10$) and `s3` ($0.83$) have intervals that contain zero. For (b), the result is not the one of Section 11.7.2: `s1` and `s2` have *negative* importances ($-0.89$ and $-0.63$) and the pair permuted together $-1.50$ (interval $-2.61$ to $-0.31$), that is, the forest does *better* on the validation patients when they are scrambled. They are correlated at $0.893$, but they carry no information that the other features lack, and a forest that splits on them fits noise; the MDI nevertheless gives them $0.046$ and $0.049$, about $10\%$ of the total. The rule of permuting a correlated group together matters when the group carries information, as the six size features of Breast Cancer do, and does not turn a useless group into an important one; a negative importance is a sign that the model is hurt by the feature. For (c) the contrast is sharp: the $20$ noise columns receive in all $0.264$ of the MDI (the largest, $0.0237$, against $0.2378$ for the best real feature), while the largest permutation importance among them is $0.29$ RMSE units against $8.26$ for the best real feature. For (d) the lasso at the one-SE value keeps `sex`, `bmi`, `bp`, `s3` and `s5`, the five features of Chapter 10; the permutation importance with an interval above zero gives `sex`, `bmi` and `s5`, and the three largest MDI are `bmi`, `s5` and `bp`. The three lists agree on `bmi` and `s5`, and differ on the features that the lasso keeps and the forest measures with an interval that includes zero, a difference that $83$ validation patients cannot resolve.

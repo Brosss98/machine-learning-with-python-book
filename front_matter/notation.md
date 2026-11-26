@@ -162,6 +162,22 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $\kappa_S$ | Condition number of the Hessian of the data term restricted to the support of the solution (Section 10.6.4); explains the linear rate of ISTA after the support is identified |
 | $\mathbf{s}_A,\ \boldsymbol\theta,\ \mathbf{u}$ | Signs of the active weights, and the vectors of Exercise 10.5, with $\hat{\mathbf{w}}_A(\lambda)=\boldsymbol\theta-\lambda\mathbf{u}$ on a segment of the path |
 
+## Decision trees and ensembles (Chapter 11)
+
+| Symbol | Meaning |
+|---|---|
+| $R_j,\ T,\ \lvert T\rvert$ | The $j$-th box (leaf region) of the partition defined by a tree, the tree itself, and its number of leaves (Definition 11.1); the tree predicts $\hat y=c_j$ for $\mathbf{x}\in R_j$, with $c_j$ the mean of the targets in $R_j$ (Proposition 11.1) |
+| $n_L,\ n_R$ | Numbers of training examples sent to the left and right child by a split; the gain of a split is $\frac{n_Ln_R}{n}(\bar y_L-\bar y_R)^2$ (Proposition 11.2) |
+| $G(\hat{\mathbf{p}})$ | Gini index of a node with class proportions $\hat{\mathbf{p}}$, $1-\sum_k\hat p_k^2$ (Definition 11.2); equal to the mean squared error of the one-hot targets (Proposition 11.5) |
+| $R(t),\ R(T_t),\ g(t)$ | Training error (a sum, not a mean) of node $t$ taken as a leaf, total error of the leaves of the subtree $T_t$ rooted at $t$, and the weakest-link value $g(t)=\frac{R(t)-R(T_t)}{\lvert T_t\rvert-1}$ (Section 11.4.2). $\alpha$ is the price per leaf of the cost-complexity criterion $R(T)+\alpha\lvert T\rvert$. (In Chapter 8, $\alpha_i$ are the dual variables.) |
+| $B,\ m_{\text{try}}$ | Number of trees of a bagged ensemble or a forest, and the number of features examined at each split ($m_{\text{try}}=p$ is bagging) |
+| $\sigma^2,\ \rho$ | Variance of the prediction of one tree and correlation between two trees, over the training set and the randomization (Proposition 11.8): $\operatorname{Var}(\bar Z)=\rho\sigma^2+\frac{1-\rho}{B}\sigma^2$. (In Chapter 10, $\rho_{ij}$ is the correlation of two features.) |
+| OOB, MDI | Out-of-bag: the examples missing from a bootstrap sample (about $36.8\%$, Proposition 11.9); mean decrease in impurity, the importance computed from the training data (Section 11.7.1) |
+| $F_m,\ \nu$ | The boosted model after $m$ rounds, $F_m=F_{m-1}+\nu f_m$, and the learning rate (shrinkage) |
+| $h_m,\ \varepsilon_m,\ \gamma_m,\ \alpha_m,\ Z_m$ | AdaBoost: the weak classifier of round $m$ with values in $\{-1,+1\}$, its weighted error, its edge $\frac12-\varepsilon_m$, its vote $\frac12\ln\frac{1-\varepsilon_m}{\varepsilon_m}$ and the normalizer of the weights (Theorem 11.12). The weights are $w_i^{(m)}$. |
+| $r_i,\ g_i,\ q_i$ | Pseudo-residual $-\partial\ell/\partial F$ of the $i$-th example, and the gradient and curvature $\partial\ell/\partial F$, $\partial^2\ell/\partial F^2$ of the loss at the current model (Propositions 11.13 and 11.14) |
+| $G_j,\ Q_j,\ w_j^\ast,\ \gamma$ | Sums of $g_i$ and $q_i$ over the leaf $R_j$, the Newton leaf value $-G_j/(Q_j+\lambda)$ and the price per leaf of the regularized objective of Proposition 11.14. (Not to be confused with the edge $\gamma_m$ of AdaBoost.) |
+
 ## Probability
 
 | Symbol | Meaning |
