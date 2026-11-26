@@ -2783,3 +2783,341 @@ solution_9_10()
 
 # %% [markdown]
 # The three kernels have positive definite Gram matrices (the smallest eigenvalues are $0.012$, $0.044$ and $0.013$) and give practically the same results: test accuracies of $0.989$ ($5$ errors in $450$ images) for the Gaussian kernel and for the Gaussian plus linear kernel, and $0.987$ ($6$ errors) for the $\chi^2$ kernel, with $5$-fold accuracies of $0.991$, $0.984$ and $0.989$. McNemar's test finds no difference: $0$ against $1$ discordant images for the $\chi^2$ kernel and $2$ against $2$ for the sum ($p = 1$ in both cases). There is no advantage in the kernel designed for non-negative histograms on this data set: the $\chi^2$ kernel is a natural choice for histograms of counts, and the pixel intensities of an $8\times 8$ image are not that; the lesson is that *a kernel is a statement about similarity*, and that the choice among reasonable kernels matters much less than the scale of the features (Section 9.6.4) or the choice of $(C, \gamma)$.
+
+# %% [markdown]
+# ## C.10 Chapter 10
+#
+# ### Manual exercises
+#
+# **Solution 10.1 — Four estimators by hand.**
+#
+# (a) The lasso with $\lambda=1$ soft-thresholds each coordinate (Proposition 10.6): $S_1(4)=3$, $S_1(-2.5)=-1.5$, $S_1(1.2)=0.2$, and the last two are set to zero, so $\hat{\mathbf{w}}=(3, -1.5, 0.2, 0, 0)$. (b) Ridge divides by $1+\lambda_2=2$: $(2, -1.25, 0.6, -0.3, 0.1)$. (c) Best subset of size 2 keeps the two largest coordinates in absolute value and does not shrink them: $(4, -2.5, 0, 0, 0)$. (d) By Exercise 10.4 the elastic net is $S_{\lambda_1}(\hat w_j^{\rm ols})/(1+\lambda_2)$, that is the weights of (a) halved: $(1.5, -0.75, 0.1, 0, 0)$. (e) The lasso keeps the coordinate $j$ if and only if $\lvert\hat w^{\rm ols}_j\rvert>\lambda$, so it keeps exactly two when $1.2\le\lambda<2.5$ (at $\lambda=1.2$ the third coordinate is exactly zero). The two weights are then $4-\lambda$ and $-(2.5-\lambda)$: each is smaller in absolute value than the corresponding weight of (c) by exactly $\lambda$, between $1.2$ and $2.5$, which for the second coordinate is between $48\%$ and $100\%$ of its size. This is the shrinkage bias of Section 10.5.6, and it is why one refits on the selected support.
+#
+# **Solution 10.2 — A two-feature lasso path.**
+#
+# (a) $\lambda_{\max}=\max_j\lvert c_j\rvert=0.8$, and feature 1 is the first to enter (Theorem 10.7 at $\mathbf{w}=\mathbf{0}$). (b) With only feature 1 active, $\hat w_1=c_1-\lambda=0.8-\lambda$. Feature 2 enters when the absolute value of its correlation with the residual reaches $\lambda$: $c_2-\rho\hat w_1=0.6-0.5(0.8-\lambda)=0.2+0.5\lambda=\lambda$, so $\lambda=0.4$. Below $0.4$ both are active with positive signs, and $\begin{pmatrix}1&\rho\\\rho&1\end{pmatrix}\hat{\mathbf{w}}=\mathbf{c}-\lambda\mathbf{1}$ gives
+# $$
+# \hat w_1=\frac{(0.8-\lambda)-0.5(0.6-\lambda)}{0.75}=\tfrac23-\tfrac23\lambda,\qquad\hat w_2=\frac{(0.6-\lambda)-0.5(0.8-\lambda)}{0.75}=\tfrac4{15}-\tfrac23\lambda,
+# $$
+# which are continuous at $\lambda=0.4$ ($\hat w_1=0.4$, $\hat w_2=0$) and equal $(\frac23,\frac4{15})$ at $\lambda=0$, the least-squares solution of $\begin{pmatrix}1&0.5\\0.5&1\end{pmatrix}\mathbf{w}=(0.8,0.6)^\top$. (c) With $c_2=0.3$ the correlation of feature 2 with the residual is $0.3-0.5(0.8-\lambda)=-0.1+0.5\lambda$, which is *negative* below $\lambda=0.2$ and reaches $-\lambda$ at $\lambda=0.1/1.5=\frac1{15}\approx0.067$ (the positive branch, $-0.1+0.5\lambda=\lambda$, would need $\lambda<0$). So feature 2 enters late, with a **negative** sign, although its marginal correlation with $\mathbf{y}$ is positive. For $\lambda<\frac1{15}$, $\hat w_1=(0.65-1.5\lambda)/0.75$ and $\hat w_2=(-0.1+1.5\lambda)/0.75$; at $\lambda=0$ they are $(0.867,-0.133)$, the least-squares solution. The mechanism is the one of `s3` in Figure 10.5: once the correlated feature 1 has explained what it can, what is left of feature 2 is related to the residual with the opposite sign, and the sign of a weight in a joint model need not be the sign of the marginal correlation.
+#
+# **Solution 10.3 — Repeated columns.**
+#
+# (a) If $\mathbf{z}_j=\mathbf{z}_k$ then $\mathbf{Z}\mathbf{w}=\sum_{l\ne j,k}w_l\mathbf{z}_l+(w_j+w_k)\mathbf{z}_j$, so the data term depends on $w_j,w_k$ only through $s=w_j+w_k$. (b) Let $\hat{\mathbf{w}}$ be a lasso solution with $\hat w_j\hat w_k\ge0$ and $s=\hat w_j+\hat w_k$. Replace $(\hat w_j,\hat w_k)$ by any $(w_j',w_k')$ with the same sign as $s$ and $w_j'+w_k'=s$. The data term is unchanged by (a), and $\lvert w_j'\rvert+\lvert w_k'\rvert=\lvert s\rvert=\lvert\hat w_j\rvert+\lvert\hat w_k\rvert$ because the two have the same sign, so the objective is unchanged: the new vector is also a solution, and the set of solutions contains a whole segment (for $s\ne0$). The lasso does not say how to split the weight, and a solver returns one point of the segment, which is what we saw for `bmi` and its copy in Section 10.8. (c) With $\lambda_2>0$ the objective is strictly convex, so the solution is unique, and for a fixed sum $s$ the data term and the $\ell_1$ term are constant on the segment of (b) while $\frac{\lambda_2}2(w_j^2+w_k^2)\ge\frac{\lambda_2}{4}s^2$ with equality only at $w_j=w_k=s/2$ (by $w_j^2+w_k^2=\frac{s^2}2+\frac{(w_j-w_k)^2}2$). Opposite signs cannot be optimal either, because replacing the pair by the equal split of the same sum lowers the $\ell_1$ term or leaves it unchanged, and lowers the $\ell_2$ term strictly. Hence $\hat w_j=\hat w_k$. This is Theorem 10.14 with $\rho_{jk}=1$: the right-hand side of (10.9) is zero.
+#
+# **Solution 10.4 — The elastic net for an orthonormal design.**
+#
+# (a) If $\frac1n\mathbf{Z}^\top\mathbf{Z}=\mathbf{I}$ then $\frac1{2n}\lVert\mathbf{y}-\mathbf{Z}\mathbf{w}\rVert^2=\frac1{2n}\lVert\mathbf{y}-\mathbf{Z}\hat{\mathbf{w}}^{\rm ols}\rVert^2+\frac12\lVert\mathbf{w}-\hat{\mathbf{w}}^{\rm ols}\rVert^2$, so the objective separates by coordinates, and with $a=\hat w_j^{\rm ols}$ each coordinate minimizes $\frac12(w-a)^2+\lambda_1\lvert w\rvert+\frac{\lambda_2}2w^2=\frac{1+\lambda_2}2\big(w-\frac a{1+\lambda_2}\big)^2+\lambda_1\lvert w\rvert+\text{const}$. Dividing by $1+\lambda_2$, this is the soft-threshold problem of Proposition 10.6 for $b=a/(1+\lambda_2)$ and threshold $\lambda_1/(1+\lambda_2)$, whose solution is $S_{\lambda_1/(1+\lambda_2)}\big(\frac a{1+\lambda_2}\big)=\frac{S_{\lambda_1}(a)}{1+\lambda_2}$. (b) The factor $1/(1+\lambda_2)$ shrinks the soft-thresholded value once more. Multiplying the elastic net by $1+\lambda_2$ undoes it and gives $S_{\lambda_1}(a)$: *for an orthonormal design the rescaled elastic net is exactly the lasso*, and the ridge term has done nothing but shrink (this is the rescaling that Zou and Hastie propose to compensate the double shrinkage). (c) There is no contradiction: Theorem 10.14 is about pairs of features with $\rho_{ij}$ near one, and an orthonormal design has $\rho_{ij}=0$ for every pair. The grouping effect is a property of the *interaction* between the ridge term and correlated columns, and it is invisible when the columns are orthogonal.
+#
+# **Solution 10.5 — The lasso path is piecewise linear.**
+#
+# (a) On an interval where the active set $A$ and the signs $\mathbf{s}_A$ are fixed, (10.5) on $A$ reads $\frac1n\mathbf{Z}_A^\top(\mathbf{y}-\mathbf{Z}_A\hat{\mathbf{w}}_A)=\lambda\mathbf{s}_A$, that is $\big(\frac1n\mathbf{Z}_A^\top\mathbf{Z}_A\big)\hat{\mathbf{w}}_A=\frac1n\mathbf{Z}_A^\top\mathbf{y}-\lambda\mathbf{s}_A$, whence $\hat{\mathbf{w}}_A(\lambda)=\boldsymbol\theta-\lambda\mathbf{u}$ (the matrix is invertible when the columns of $A$ are linearly independent), and $\hat{\mathbf{w}}_{A^c}=\mathbf{0}$: the path is linear in $\lambda$ on the interval. (b) The residual is $\mathbf{r}(\lambda)=\mathbf{y}-\mathbf{Z}_A\boldsymbol\theta+\lambda\mathbf{Z}_A\mathbf{u}$, so for $j\notin A$ the correlation $c_j(\lambda)=\frac1n\mathbf{z}_j^\top\mathbf{r}(\lambda)=a_j+\lambda b_j$ is affine in $\lambda$. The inactive feature $j$ enters when $c_j(\lambda)=\lambda$ (sign $+$), at $\lambda=a_j/(1-b_j)$, or when $c_j(\lambda)=-\lambda$ (sign $-$), at $\lambda=-a_j/(1+b_j)$; an active feature $k$ leaves when $\theta_k-\lambda u_k=0$, at $\lambda=\theta_k/u_k$. The next knot is the largest of these values that is smaller than the current $\lambda$ (the others are ignored). (c) In Exercise 10.2 with $A=\{1\}$, $s=+1$: $\theta=c_1=0.8$, $u=1$, and for $j=2$: $a_2=c_2-\rho\theta=0.2$, $b_2=\rho u=0.5$, so the knot is $0.2/(1-0.5)=0.4$. With $c_2=0.3$: $a_2=-0.1$; the $+$ branch gives a negative $\lambda$ and is discarded, and the $-$ branch gives $0.1/1.5=\frac1{15}$, with sign $-$. After feature 2 has entered, $\boldsymbol\theta$ is the least-squares solution and the possible exits are at $\theta_k/u_k$, which fall outside $(0,\text{knot})$: the path ends at least squares, as found. (d) A feature can leave the model after it has entered, when $\theta_k-\lambda u_k$ crosses zero, and enter again later: each such departure and return adds two knots. On Diabetes `s2` entered at $4.12$, left at $3.64$ and re-entered at $0.31$, and `s3` left at $0.13$ and re-entered at $0.08$, which makes $10+4=14$ events and the $15$ knots of Section 10.5.5 (counting $\lambda=0$ as the last one).
+#
+# ### Python exercises
+
+# %%
+import time
+import warnings
+
+from sklearn.exceptions import ConvergenceWarning
+
+# %%
+def solution_10_6():
+    from sklearn.datasets import load_wine
+    from sklearn.linear_model import Lasso, LassoCV, LassoLarsIC, LinearRegression, RidgeCV, lasso_path
+    from sklearn.model_selection import KFold, train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    wine = load_wine()
+    j_alc = list(wine.feature_names).index("alcohol")
+    names = [f for f in wine.feature_names if f != "alcohol"]
+    X, y = np.delete(wine.data, j_alc, axis=1), wine.data[:, j_alc]
+    Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=SEED)
+    sc = StandardScaler().fit(Xtr)
+    Z, Zt = sc.transform(Xtr), sc.transform(Xte)
+    n = len(ytr)
+    print(f"{n} training and {len(yte)} test wines, {len(names)} features; standard deviation of alcohol in the training set: {ytr.std():.3f}")
+
+    kf = KFold(10, shuffle=True, random_state=SEED)
+    lc = LassoCV(alphas=100, cv=kf).fit(Z, ytr)
+    mean, se = lc.mse_path_.mean(axis=1), lc.mse_path_.std(axis=1, ddof=1) / np.sqrt(10)
+    i_min = int(np.argmin(mean))
+    i_1se = int(np.where(mean <= mean[i_min] + se[i_min])[0].min())          # alphas_ is decreasing: the first index is the largest lambda
+    lam = {"lasso, CV minimum": lc.alphas_[i_min], "lasso, one-SE rule": lc.alphas_[i_1se]}
+    models = {name: Lasso(alpha=a, tol=1e-12, max_iter=200000).fit(Z, ytr) for name, a in lam.items()}
+    for crit in ["aic", "bic"]:
+        ic = LassoLarsIC(criterion=crit).fit(Z, ytr)
+        lam[f"lasso, {crit.upper()}"] = ic.alpha_
+        models[f"lasso, {crit.upper()}"] = Lasso(alpha=ic.alpha_, tol=1e-12, max_iter=200000).fit(Z, ytr)
+    rows = []
+    for name, m in models.items():
+        sel = [names[j] for j in np.flatnonzero(m.coef_)]
+        rows.append({"model": name, "lambda": lam[name], "features": len(sel), "test RMSE": np.sqrt(np.mean((m.predict(Zt) - yte) ** 2))})
+        print(f"{name:<20} lambda = {lam[name]:.4f}: {', '.join(sel)}")
+    ols = LinearRegression().fit(Z, ytr)
+    rg = RidgeCV(alphas=np.logspace(-3, 3, 50)).fit(Z, ytr)
+    rows += [{"model": "least squares", "lambda": 0.0, "features": len(names), "test RMSE": np.sqrt(np.mean((ols.predict(Zt) - yte) ** 2))},
+             {"model": f"ridge (alpha = {rg.alpha_:.2f})", "lambda": rg.alpha_, "features": len(names), "test RMSE": np.sqrt(np.mean((rg.predict(Zt) - yte) ** 2))}]
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+
+    m = models["lasso, CV minimum"]
+    r = ytr - m.predict(Z)
+    g = Z.T @ r / n
+    act = m.coef_ != 0
+    print(f"KKT at the CV minimum (lambda = {lam['lasso, CV minimum']:.4f}): max |g_j - lambda sign(w_j)| over active = {np.abs(g[act] - lam['lasso, CV minimum'] * np.sign(m.coef_[act])).max():.1e}; "
+          f"max |g_j| over inactive = {np.abs(g[~act]).max() if (~act).any() else 0:.4f} <= lambda")
+
+    alphas, coefs, _ = lasso_path(Z, ytr - ytr.mean(), alphas=lc.alphas_)
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2))
+    ax = axes[0]
+    palette = [BLUE, ORANGE, GREEN, VERMILION, SKY, PURPLE, "black"]
+    for j in range(len(names)):
+        ax.plot(np.log10(alphas), coefs[j], color=palette[j % 7], ls=["-", "--", ":"][j // 7 % 3], lw=1.8, label=names[j])
+    for a, ls in [(lam["lasso, CV minimum"], ":"), (lam["lasso, one-SE rule"], "--")]:
+        ax.axvline(np.log10(a), color="gray", ls=ls, lw=1)
+    ax.set(xlabel=r"$\log_{10}\lambda$", ylabel="weight (standardized features)", title="(a) lasso path for alcohol (dotted: CV min.; dashed: one-SE)")
+    ax.legend(frameon=False, fontsize=7, ncol=2, loc="upper left")
+    ax = axes[1]
+    ax.semilogx(lc.alphas_, mean, color=BLUE, lw=2)
+    ax.fill_between(lc.alphas_, mean - se, mean + se, color=BLUE, alpha=0.2)
+    ax.axvline(lam["lasso, CV minimum"], color="gray", ls=":", lw=1)
+    ax.axvline(lam["lasso, one-SE rule"], color="gray", ls="--", lw=1)
+    ax.set(xlabel=r"$\lambda$", ylabel="10-fold CV mean squared error", title="(b) cross-validation")
+    plt.show()
+
+
+solution_10_6()
+
+# %% [markdown]
+# The criteria choose $\lambda=0.046$ (CV minimum, 7 of the 12 features), $0.172$ (one-SE rule, only `color_intensity` and `proline`), $0.031$ (AIC, 8 features) and $0.075$ (BIC, 4 features: `alcalinity_of_ash`, `total_phenols`, `color_intensity`, `proline`): the BIC and the one-SE rule give the small models, as in Section 10.7. On the 45 test wines the test RMSE is $0.434$ (AIC), $0.436$ (ridge), $0.437$ (CV minimum), $0.443$ (least squares) and $0.449$ (BIC), all within $0.015$ of each other, and $0.486$ for the two-feature model of the one-SE rule, about $11\%$ higher: here the parsimonious model has a visible cost, which 45 test wines cannot confirm. At the CV minimum the optimality conditions hold to $2\cdot10^{-13}$ on the active set, and the largest correlation with the residual among the five features that are zero is $0.037$, below $\lambda=0.046$.
+
+# %%
+def solution_10_7():
+    from sklearn.datasets import load_diabetes, load_wine
+    from sklearn.linear_model import ElasticNet
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+
+    def soft(a, t):
+        return np.sign(a) * np.maximum(np.abs(a) - t, 0.0)
+
+    def objective(Z, y, w, lam1, lam2):
+        r = y - Z @ w
+        return r @ r / (2 * len(y)) + lam1 * np.abs(w).sum() + 0.5 * lam2 * w @ w
+
+    def cd_enet(Z, y, lam1, lam2, sweeps):
+        n, p = Z.shape
+        w, r = np.zeros(p), y.copy()
+        col = (Z ** 2).sum(axis=0) / n
+        objs = []
+        for _ in range(sweeps):
+            for j in range(p):
+                rho = Z[:, j] @ r / n + col[j] * w[j]
+                new = soft(rho, lam1) / (col[j] + lam2)
+                r -= (new - w[j]) * Z[:, j]
+                w[j] = new
+            objs.append(objective(Z, y, w, lam1, lam2))
+        return w, np.array(objs)
+
+    # (a) Wine, alcohol against the other 12 features
+    wine = load_wine()
+    j_alc = list(wine.feature_names).index("alcohol")
+    X, y = np.delete(wine.data, j_alc, axis=1), wine.data[:, j_alc]
+    Xtr, _, ytr, _ = train_test_split(X, y, test_size=0.25, random_state=SEED)
+    Z = StandardScaler().fit_transform(Xtr)
+    yc = ytr - ytr.mean()
+    rows = []
+    for lam1, lam2 in [(0.05, 0.0), (0.05, 0.1), (0.1, 0.3)]:
+        w, _ = cd_enet(Z, yc, lam1, lam2, 300)
+        sk = ElasticNet(alpha=lam1 + lam2, l1_ratio=lam1 / (lam1 + lam2), fit_intercept=False, tol=1e-14, max_iter=500000).fit(Z, yc)
+        rows.append({"lambda1": lam1, "lambda2": lam2, "non-zeros": int((w != 0).sum()), "max |ours - ElasticNet|": np.abs(w - sk.coef_).max()})
+    print("(a) Wine:")
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3g}"))
+
+    # (b) sweeps to reach a gap of 1e-10 on the 65 quadratic features of Diabetes
+    d = load_diabetes()
+    Xd, _, yd, _ = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    P = StandardScaler().fit_transform(PolynomialFeatures(2, include_bias=False).fit_transform(Xd))
+    yc = yd - yd.mean()
+    n = len(yc)
+    ev = np.linalg.eigvalsh(P.T @ P / n)
+    print(f"(b) {P.shape[1]} quadratic features, 331 patients: smallest and largest eigenvalue of the Hessian of the data term: {ev.min():.2e}, {ev.max():.2f}")
+    rows = []
+    for lam2 in [0.0, 0.1, 1.0]:
+        _, objs = cd_enet(P, yc, 1.0, lam2, 20000)
+        gap = objs - objs[-1]
+        k = int(np.argmax(gap[:-1] < 1e-10)) + 1
+        rows.append({"lambda2": lam2, "smallest eigenvalue of the Hessian": ev.min() + lam2, "sweeps to a gap of 1e-10": k})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.3g}"))
+
+
+solution_10_7()
+
+# %% [markdown]
+# (a) Our coordinate descent agrees with `ElasticNet` to $10^{-14}$ in the three settings, with 6, 7 and 4 non-zero weights. (b) The 65 standardized quadratic features have a Hessian of the data term with the smallest eigenvalue at rounding level ($3\cdot10^{-17}$): the feature `sex` takes two values, so `sex^2` is an affine function of `sex` and, after standardizing, the two columns are equal up to sign. The lasso is therefore not strongly convex and coordinate descent needs $79$ sweeps to bring the objective gap below $10^{-10}$; with $\lambda_2=0.1$ it needs $64$ and with $\lambda_2=1$ only $22$. The ridge term adds $\lambda_2$ to every eigenvalue of the Hessian, so that the problem is $\lambda_2$-strongly convex, and by Theorem 7.5 the convergence is linear with a rate that improves with $\lambda_2$. The gain is the one of the augmented-data form of Proposition 10.13: the extra rows make the design full rank and better conditioned.
+
+# %%
+def solution_10_8():
+    from sklearn.datasets import load_wine
+    from sklearn.linear_model import ElasticNetCV, LassoCV, LinearRegression, RidgeCV
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    wine = load_wine()
+    j_alc = list(wine.feature_names).index("alcohol")
+    X, y = np.delete(wine.data, j_alc, axis=1), wine.data[:, j_alc]
+    p0 = X.shape[1]
+    rows = []
+    t0 = time.time()
+    for m in [0, 10, 100, 1000]:
+        res = {k: [] for k in ["least squares", "ridge", "lasso", "elastic net"]}
+        noise_sel = {"lasso": [], "elastic net": []}
+        for s in range(20):
+            rng = np.random.default_rng(1000 * s + m)
+            Xa = np.column_stack([X, rng.normal(size=(len(y), m))]) if m else X
+            Xtr, Xte, ytr, yte = train_test_split(Xa, y, test_size=0.25, random_state=s)
+            sc = StandardScaler().fit(Xtr)
+            Z, Zt = sc.transform(Xtr), sc.transform(Xte)
+            if Z.shape[1] < len(ytr) - 2:
+                res["least squares"].append(np.mean((LinearRegression().fit(Z, ytr).predict(Zt) - yte) ** 2))
+            res["ridge"].append(np.mean((RidgeCV(alphas=np.logspace(-2, 5, 30)).fit(Z, ytr).predict(Zt) - yte) ** 2))
+            lc = LassoCV(alphas=50, cv=5, random_state=s).fit(Z, ytr)
+            en = ElasticNetCV(l1_ratio=0.5, alphas=50, cv=5, random_state=s).fit(Z, ytr)
+            res["lasso"].append(np.mean((lc.predict(Zt) - yte) ** 2))
+            res["elastic net"].append(np.mean((en.predict(Zt) - yte) ** 2))
+            noise_sel["lasso"].append(int((lc.coef_[p0:] != 0).sum()))
+            noise_sel["elastic net"].append(int((en.coef_[p0:] != 0).sum()))
+        rows.append({"noise columns m": m, "p": p0 + m, "baseline": np.sqrt(np.var(y)),
+                     **{k: (np.sqrt(np.mean(v)) if v else np.nan) for k, v in res.items()},
+                     "noise kept (lasso)": np.mean(noise_sel["lasso"]), "noise kept (elastic net)": np.mean(noise_sel["elastic net"])})
+    df = pd.DataFrame(rows)
+    print(df.to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    print(f"[{time.time() - t0:.0f} s]")
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2), sharey=True)
+    for ax, xs, xl in [(axes[0], np.log(df["p"]), r"$\ln p$"), (axes[1], df["p"], "$p$ (number of features)")]:
+        for name, c, mk in [("ridge", BLUE, "s"), ("lasso", VERMILION, "o"), ("elastic net", GREEN, "^"), ("least squares", "gray", "x")]:
+            ax.plot(xs, df[name], marker=mk, color=c, lw=2, label=name)
+        ax.axhline(df["baseline"].iloc[0], color="black", lw=0.8, ls="--")
+        ax.set(xlabel=xl)
+    axes[0].set(ylabel="test RMSE (mean of 20 splits)")
+    axes[0].legend(frameon=False)
+    plt.show()
+
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=ConvergenceWarning)   # LassoCV tries very small lambdas, where the solver stops at its iteration cap
+    solution_10_8()
+
+# %% [markdown]
+# With alcohol as the response and no noise, the four methods are within $0.013$ of each other ($0.544$ to $0.556$; the baseline, the standard deviation of the response, is $0.810$). When useless columns are appended, least squares goes from $0.556$ to $0.584$ with 10 noise columns and to $1.52$ with 100 ($p=112$ for 133 training wines), and is undefined for 1,000. Ridge degrades steadily, to $0.776$ at $m=1000$, which is $87\%$ of the way from its own error to the baseline. The lasso goes from $0.544$ to $0.574$, $11\%$ of the way, and keeps on average $10$ of the $1000$ noise columns; the elastic net behaves like the lasso for prediction ($0.586$) and keeps more noise columns ($15$). Against $\ln p$ the lasso errors ($0.544$, $0.551$, $0.556$, $0.574$ at $\ln p=2.5, 3.1, 4.7, 6.9$) are close to a straight line, while those of ridge rise much faster; this is what Theorem 10.12 allows, but a bound is not a measurement, and with four values of $m$ and noisy estimates we cannot say more than that the data agree with it.
+
+# %%
+def solution_10_9():
+    from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import ElasticNet, ElasticNetCV, Lasso, LassoCV
+    from sklearn.model_selection import KFold, train_test_split
+    from sklearn.preprocessing import StandardScaler
+
+    d = load_diabetes()
+    Xtr, _, ytr, _ = train_test_split(d.data, d.target, test_size=0.25, random_state=SEED)
+    rng = np.random.default_rng(SEED)
+    Xa = np.column_stack([Xtr, rng.normal(size=(len(ytr), 20))])
+    names = list(d.feature_names) + [f"noise{j + 1}" for j in range(20)]
+    Z = StandardScaler().fit_transform(Xa)
+    n = len(ytr)
+    kf = KFold(10, shuffle=True, random_state=SEED)
+
+    def one_se(model):
+        mean = model.mse_path_.mean(axis=1)
+        se = model.mse_path_.std(axis=1, ddof=1) / np.sqrt(10)
+        i = int(np.argmin(mean))
+        return model.alphas_[int(np.where(mean <= mean[i] + se[i])[0].min())]
+
+    lam_l = one_se(LassoCV(alphas=100, cv=kf).fit(Z, ytr))
+    lam_e = one_se(ElasticNetCV(l1_ratio=0.5, alphas=100, cv=kf).fit(Z, ytr))
+    cfg = {"lasso": lambda: Lasso(alpha=lam_l, tol=1e-8, max_iter=50000), "elastic net": lambda: ElasticNet(alpha=lam_e, l1_ratio=0.5, tol=1e-8, max_iter=50000)}
+    sub_rng = np.random.default_rng(SEED + 1)
+    halves = [sub_rng.choice(n, n // 2, replace=False) for _ in range(100)]
+    freq, full = {}, {}
+    for name, make in cfg.items():
+        sel = np.array([make().fit(Z[h], ytr[h]).coef_ != 0 for h in halves])
+        freq[name] = sel.mean(axis=0)
+        full[name] = make().fit(Z, ytr).coef_ != 0
+    print(f"alpha at the one-SE rule: lasso {lam_l:.2f}, elastic net {lam_e:.2f} (l1_ratio 0.5)")
+    rows = []
+    for name in cfg:
+        stable = freq[name] >= 0.7
+        rows.append({"method": name, "full fit: real / noise": f"{int(full[name][:10].sum())} / {int(full[name][10:].sum())}",
+                     "frequency >= 0.7: real / noise": f"{int(stable[:10].sum())} / {int(stable[10:].sum())}",
+                     "noise columns with frequency >= 0.2": int((freq[name][10:] >= 0.2).sum()),
+                     "largest noise frequency": freq[name][10:].max()})
+    print(pd.DataFrame(rows).to_string(index=False, float_format=lambda v: f"{v:.2f}"))
+    for name in cfg:
+        top = np.argsort(-freq[name])[:12]
+        print(f"{name}: " + ", ".join(f"{names[j]} {freq[name][j]:.2f}" for j in top))
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.2), sharey=True)
+    for ax, (name, c) in zip(axes, [("lasso", VERMILION), ("elastic net", BLUE)]):
+        colors = [c if j < 10 else "gray" for j in range(30)]
+        ax.bar(range(30), freq[name], color=colors)
+        ax.axhline(0.7, color="black", ls="--", lw=1)
+        ax.set(xlabel="column (10 real features, then 20 noise columns)", title=f"{name}: selection frequency over 100 half-samples")
+    axes[0].set_ylabel("selection frequency")
+    plt.show()
+
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=ConvergenceWarning)   # LassoCV tries very small lambdas, where the solver stops at its iteration cap
+    solution_10_9()
+
+# %% [markdown]
+# The one-SE penalty of the lasso is $7.49$; the one-SE penalty of the elastic net is much smaller ($1.72$, with $\lambda_1=0.86$), because its cross-validation curve is flat and the ridge term makes the noise columns almost harmless for prediction. A single lasso fit on the full training set keeps 4 real features and 2 of the 20 noise columns. Stability selection with a threshold of $0.7$ keeps exactly the four real features that are always selected (`bp`, `bmi`, `s5` at frequency $1.00$, `s3` at $0.97$) and none of the noise: the most frequent noise column (`noise8`) has frequency $0.50$, and `sex`, with $0.32$, is left out. The elastic net tells another story: with its cross-validated penalty it keeps all ten real features and *all twenty* noise columns in more than $90\%$ of the half-samples (the most frequent noise column has frequency $0.99$), so no threshold separates real from noise. The elastic net is a prediction method that happens to be sparse; when the goal is to find the few features that matter among many useless ones, the penalty must be chosen for selection (the larger one-SE value of the lasso), and the frequencies, not a single fit, tell which columns to trust.
+
+# %%
+def solution_10_10():
+    from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import LassoCV
+    from sklearn.model_selection import KFold
+    from sklearn.preprocessing import StandardScaler
+
+    d = load_diabetes()
+    reps, n, m = 30, 60, 200
+    rows = []
+    t0 = time.time()
+    for r in range(reps):
+        rng = np.random.default_rng(r)
+        idx = rng.choice(len(d.target), n, replace=False)
+        X = np.column_stack([d.data[idx], rng.normal(size=(n, m))])
+        y = rng.permutation(d.target[idx])                                  # shuffled response: no feature carries information
+        Z = StandardScaler().fit_transform(X)
+        lc = LassoCV(alphas=50, cv=5, random_state=r).fit(Z, y)
+        cv_min = lc.mse_path_.mean(axis=1).min()
+        outer, errs = KFold(5, shuffle=True, random_state=r), []
+        for tr, te in outer.split(Z):
+            sc = StandardScaler().fit(X[tr])
+            inner = LassoCV(alphas=50, cv=5, random_state=r).fit(sc.transform(X[tr]), y[tr])
+            errs.append(np.mean((inner.predict(sc.transform(X[te])) - y[te]) ** 2))
+        rows.append({"variance of y": np.var(y), "CV minimum": cv_min, "nested CV": np.mean(errs)})
+    df = pd.DataFrame(rows)
+    print(f"[{time.time() - t0:.0f} s]")
+    ratio = df[["CV minimum", "nested CV"]].div(df["variance of y"], axis=0)
+    print(pd.DataFrame({"estimate / variance of the response": ["CV minimum of LassoCV (reported)", "nested CV of the whole procedure"],
+                        "mean": [ratio["CV minimum"].mean(), ratio["nested CV"].mean()],
+                        "5th percentile": [ratio["CV minimum"].quantile(0.05), ratio["nested CV"].quantile(0.05)],
+                        "95th percentile": [ratio["CV minimum"].quantile(0.95), ratio["nested CV"].quantile(0.95)],
+                        "repetitions below 1": [int((ratio["CV minimum"] < 1).sum()), int((ratio["nested CV"] < 1).sum())]}).to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    fig, ax = plt.subplots(figsize=(6.6, 4.0))
+    b = np.linspace(0.6, 1.6, 26)
+    ax.hist(ratio["CV minimum"], bins=b, color=VERMILION, alpha=0.75, label="minimum of the CV curve")
+    ax.hist(ratio["nested CV"], bins=b, color=BLUE, alpha=0.65, label="nested CV")
+    ax.axvline(1.0, color="black", ls="--", lw=1)
+    ax.set(xlabel="estimated error / variance of the response (1 = null model)", ylabel="repetitions (of 30)")
+    ax.legend(frameon=False)
+    plt.show()
+
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=ConvergenceWarning)   # LassoCV tries very small lambdas, where the solver stops at its iteration cap
+    solution_10_10()
+
+# %% [markdown]
+# With the response shuffled, the null model has the mean squared error of the variance of the response (ratio 1), and no estimate of the error of a method that learns nothing can honestly be below it. The minimum of the cross-validation curve of `LassoCV`, the number that is usually reported, has a mean ratio of $1.02$ and is below $1$ in $7$ of the 30 repetitions (5th to 95th percentile $0.93$ to $1.10$): in one repetition out of four the method appears to predict better than the null model although there is nothing to predict. The nested estimate of the whole procedure has a mean ratio of $1.10$, is below $1$ in only one repetition, and shows what is true: a lasso with $\lambda$ chosen on noise does worse than the null model, because the selected noise columns add variance. The difference between the two estimates, $0.08$ of the variance on average, is the winner's curse of Section 5.4.3 for the choice of $\lambda$: the minimum of 50 estimated errors is optimistic, and the optimism is largest exactly when the signal is weak.

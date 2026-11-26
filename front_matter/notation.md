@@ -146,6 +146,22 @@ In code, the data matrix is an array `X` of shape `(n, d)`, with one sample per 
 | $\mathbf{H}_\lambda,\ \mu_j$ | Smoother $\mathbf{K}(\mathbf{K}+\lambda\mathbf{I})^{-1}$ of kernel ridge regression (as in Chapter 6) and the eigenvalues of $\mathbf{K}$, with $\operatorname{df}(\lambda)=\sum_j\mu_j/(\mu_j+\lambda)$ |
 | $\mathbf{z}(\mathbf{x}),\ D$ | Random Fourier feature map into $\mathbb{R}^D$ (Theorem 9.7). (Not to be confused with the point $\mathbf{z}$ at which a kernel is evaluated.) |
 
+## Sparsity and feature selection (Chapter 10)
+
+| Symbol | Meaning |
+|---|---|
+| $\lVert\mathbf{w}\rVert_0,\ s$ | Number of non-zero weights, and the size of a sparse model (Definition 10.1); $\mathbf{w}^\ast$ with $s$ non-zeros is the true weight vector in Sections 10.4 and 10.7 |
+| $S,\ S^\ast,\ A$ | A subset of features (a *support*), the true support, and the active set (the non-zero weights) of the lasso; $\mathbf{X}_S$ is the matrix of the columns in $S$. (In Chapter 5, $S^+,S^-$ are scores; in Chapter 6, $\mathbf{S}=\operatorname{diag}(p_i(1-p_i))$; $S_t$ below is a function.) |
+| $\mathrm{RSS}$, $C_p$, $\mathrm{BIC}$ | Residual sum of squares of a fit, and the criteria of Section 10.3.2 for choosing the size of a subset: $C_p(S)=\mathrm{RSS}(S)/n+2\hat\sigma^2(\lvert S\rvert+1)/n$ and $\mathrm{BIC}(S)=n\ln(\mathrm{RSS}(S)/n)+(\ln n)(\lvert S\rvert+1)$ |
+| $\mathbf{P}_S,\ \mathbf{r},\ \tilde{\mathbf{x}}_j$ | Orthogonal projection on the span of the columns in $S$, the current residual, and the part of the feature $\mathbf{x}_j$ orthogonal to that span (Lemma 10.3) |
+| $\mu$ | **Mutual coherence** of unit-norm features, $\max_{i\ne j}\lvert\mathbf{x}_i^\top\mathbf{x}_j\rvert$ (Corollary 10.5). (In Chapter 7, $\mu$ is the strong-convexity constant; in Chapter 9, $\mu_j$ are eigenvalues of the Gram matrix.) |
+| $\lambda,\ F_\lambda,\ \lambda_{\max}$ | Lasso penalty in the convention $F_\lambda(\mathbf{w})=\frac1{2n}\lVert\mathbf{y}-\mathbf{X}\mathbf{w}\rVert^2+\lambda\lVert\mathbf{w}\rVert_1$ (the `alpha` of scikit-learn), the objective, and the smallest $\lambda$ for which $\hat{\mathbf{w}}=\mathbf{0}$, $\frac1n\lVert\mathbf{X}^\top\mathbf{y}\rVert_\infty$ (Theorem 10.7). For $\ell_1$ logistic regression $\lambda=1/(nC)$ (Section 10.9) |
+| $S_t(a)$ | Soft-thresholding operator, $\operatorname{sign}(a)\max(\lvert a\rvert-t,0)$ (Proposition 10.6); also the proximal operator of $t\lVert\cdot\rVert_1$ (Proposition 10.9) |
+| $\lambda_1,\ \lambda_2$ | Weights of the $\ell_1$ and the squared $\ell_2$ penalties of the elastic net, $\text{alpha}\cdot\text{l1\_ratio}$ and $\text{alpha}\,(1-\text{l1\_ratio})$ in scikit-learn (Definition 10.3) |
+| $\rho_{ij}$ | Correlation of two standardized features, $\frac1n\mathbf{z}_i^\top\mathbf{z}_j$ (Theorem 10.14) |
+| $\kappa_S$ | Condition number of the Hessian of the data term restricted to the support of the solution (Section 10.6.4); explains the linear rate of ISTA after the support is identified |
+| $\mathbf{s}_A,\ \boldsymbol\theta,\ \mathbf{u}$ | Signs of the active weights, and the vectors of Exercise 10.5, with $\hat{\mathbf{w}}_A(\lambda)=\boldsymbol\theta-\lambda\mathbf{u}$ on a segment of the path |
+
 ## Probability
 
 | Symbol | Meaning |
